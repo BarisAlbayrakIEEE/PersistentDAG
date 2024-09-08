@@ -409,8 +409,8 @@ firstly, a DAG is a link based data structure like a tree.
 link based data structures are usualy implemented using a node class
 and defining the node relations via pointers.
 hence, a traditional (single threaded) DAG would have:
-1. inner node class with ancestor nodes defined by a vector of raw pointers\
-descendant nodes defined by a vector of shared pointers
+1. inner node class with the ancestor nodes defined by a vector of raw pointers\
+and the descendant nodes defined by a vector of shared pointers
 2. tail node
 3. head node
 
