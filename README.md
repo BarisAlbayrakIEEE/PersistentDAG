@@ -182,7 +182,7 @@ the index dependency is secured by the persistency itself (i.e. *public const* f
 however, the DAG contains some private mutating functions (e.g. *update_DAG_state*).
 all private mutating functions satisfy the strong exception safety.
 
-`std::vector` allocates a contiguous memory which is highly efficient due to the efficient cache usage
+`std::vector` allocates a contiguous memory which is highly efficient
 for the two most critical procedures of a persistent DAG structure:
 1. copy construction
 2. traversal
