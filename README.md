@@ -127,6 +127,7 @@ is the state data managed for all nodes together with the node relations.
 lets inspect two of the basic algorithms:
 - node creation and
 - node manipulation (i.e. updating the ancestots)
+
 when a new entity is added, the DAG creates a node for the entity.
 the current paths are just extended by this action as a new node cannot have descendant nodes.
 the DAG inspects the ancestors of the new node if the node is required to have ancestor nodes.
@@ -226,9 +227,10 @@ and the required interface (e.g. increment operator, etc.).
 
 the iterator stores the visited nodes (i.e. indices) due to the *many-to-one* relations.
 the use of indices instead of the pointers creates an additional indirection during the iteration
-which increases the runtime of the iteration.
+which increases the runtime of the iteration:
 1. locate the beginning of the node vector's data
 2. locate the relative position of the node using random access operator.
+
 both constant time but now we have two pointer indirections.
 
 however, the index usage allows storing the visited nodes
@@ -249,11 +251,13 @@ the persistency provides strong exception safety for the public functions.
 however, the DAG has two private mutating functions to be executed by the background thread.
 1. `update_DAG_state()`
 2. `erase_deleted_nodes()`
+
 the strong exception safety is achieved by storing a backup data
 that would be modified during the function execution.
 the backup data refers to
 - the states of the nodes (copy is cheap) for `update_DAG_state()` and,
 - the node relation data (copy is not cheap) for `erase_deleted_nodes()`.
+
 hence, backup solution is not reasonable for `erase_deleted_nodes()`.
 the 2nd interface ([2nd version of the Persistent DAG](PersistentDAG_2.h)) embeds `erase_deleted_nodes()` into erase function
 without increasing the runtime complexity of the erase function significantly.
@@ -300,6 +304,7 @@ on the other hand, boost::lock has an overload which supports `std::vector<std::
 however, STL has a reason while excluding the dynamic containers:\
 - compile time locking ensures the RAII, exception safety and the intent of the lock while runtime does not
 - the locking process may include too many mutexes which is basically not reasonable and open to deadlocks.
+
 the STL's choice actually is a significant sign to give up the lock-based approach.
 2. dead locks would arise even in a traversal in the same direction:\
 consider we have node N1 with descendant nodes N11, N12, N13, N100 and N200.\
@@ -341,6 +346,7 @@ as described for the 1st option, there are mainly two data shared by
 the main and the background threads in case of a mutating DAG:\
 - node state data and
 - node relation data
+
 node state data could be stored in a node class as an atomic type for the thread safety.
 however, the same does not apply to the ancestor and descendant nodes due to two reasons:
 1. the ancestor and descendant relations are coupled as explained in the 1st approach.\
@@ -374,9 +380,11 @@ the 2nd interface ([2nd version of the Persistent DAG](PersistentDAG_2.h)) impro
 any operation executed on the persistent DAG will follow the following steps:
 1. copy the DAG
 2. apply the operation on the new DAG
+
 these two steps are necessary and sufficient
 - if the DAG is in a valid state and
 - if the operation is not a modification
+
 the relations in a DAG can be so complex that a change in the state of a node can affect a distant node.
 each modification on a DAG requires some portion of DAG to be inspected when the state of any node has changed.
 hence, the required steps become:
@@ -404,6 +412,7 @@ hence, a traditional (single threaded) DAG would have:
 descendant nodes defined by a vector of shared pointers
 2. tail node
 3. head node
+
 the copy constructor of the DAG above would copy the head node
 which will triger the copy constructors of all nodes recursively.
 we have the following problems with this copy constructor:
@@ -412,6 +421,7 @@ we have the following problems with this copy constructor:
 3. the pointers must be updated after copying the nodes
 4. many-to-one relations force us to keep track of the nodes copied (`std::unordered_set`)
 5. recursive process would probably cause stack overflow for a large DAG.
+
 a solution to the 1st issue is storing the nodes in the DAG in a contiguous container (`std::vector<node>`)
 and replacing the shared pointers of descendant container with raw pointers or weak pointers.
 now all issues accept for the 3rd one is solved
@@ -477,6 +487,7 @@ the pseudocode for the main thread is as follows:
 4. release the lock
 5. perform the requested operation on the copy of the DAG
 6. return the modified copy of the DAG
+
 the pseudocode for the background thread is as follows:
 1. acquire the lock on the mutex
 2. create a copy of the node state data
@@ -486,6 +497,7 @@ the pseudocode for the background thread is as follows:
 6. copy the modified copy of the state data onto the original state data
 7. release the lock
 8. update the state of the DAG according to the final node state data.
+
 hence, the critical section for the mutex is the node state data copy process
 which is guaranteed to be very fast as its a bitwise copy process.
 hence, in this approach, the runtime of the main thread is very short
@@ -526,6 +538,7 @@ hence, many fundamental operations of a DAG are excluded.
 Two important parameters are missing in this DAG interface:
 1. Edges
 2. Node weight factors
+
 Edges are simulated in node relation data (i.e. ancestor nodes and descendant nodes).
 Node weight factors are not defined
 which means that all nodes are treated equally.
