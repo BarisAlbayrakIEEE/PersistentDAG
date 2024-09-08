@@ -493,7 +493,7 @@ the pseudocode for the background thread is as follows:
 1. acquire the lock on the mutex
 2. create a copy of the node state data
 3. release the lock
-4. execute `update_DAG_state()`
+4. execute `update_DAG_state()` which updates the copy of the node state data
 5. acquire the lock on the mutex again
 6. copy the modified copy of the state data onto the original state data
 7. release the lock
