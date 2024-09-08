@@ -170,10 +170,13 @@ the 2nd interface ([PersistentDAG_2.h](PersistentDAG_2.h)) replaces the use of a
 
 with a number of
 
-`std::vector<std::array<std::size_t, i>>`
+`std::vector<std::array<std::size_t, 1>>`
+`std::vector<std::array<std::size_t, 2>>`
+...
+`std::vector<std::array<std::size_t, k>>`
 
 where i = 1,...k.
-the maximum value of k is defined statically.
+the value of k is defined statically.
 
 the indexing of the VectorTree and the vectors are all dependent/parallel.
 the index dependency is secured by the persistency itself (i.e. *public const* functions).
@@ -531,7 +534,7 @@ The issue is explained in [Data Structures and Memory Management](#3-Data-Struct
 
 ## 7. Assumptions and Limitations:
 The only aim of the this DAG interface is to store the data (T) in a directed graph data structure
-while keeping a state of the data uptodate.
+while keeping the state of the data uptodate.
 hence, many fundamental operations of a DAG are excluded.
 Two important parameters are missing in this DAG interface:
 1. Edges
