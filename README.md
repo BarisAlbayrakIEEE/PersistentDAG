@@ -170,10 +170,10 @@ the 2nd interface ([PersistentDAG_2.h](PersistentDAG_2.h)) replaces the use of a
 
 with a number of vectors:
 
-`std::vector<std::array<std::size_t, 1>>`\
-`std::vector<std::array<std::size_t, 2>>`\
+`std::vector<std::array<node_location, 1>>`\
+`std::vector<std::array<node_location, 2>>`\
 ...\
-`std::vector<std::array<std::size_t, k>>`
+`std::vector<std::array<node_location, k>>`
 
 the value of k is defined statically.
 
