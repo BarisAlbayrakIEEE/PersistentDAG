@@ -306,6 +306,7 @@ however, STL has a reason while excluding the dynamic containers:\
 - the locking process may include too many mutexes which is basically not reasonable and open to deadlocks.
 
 the STL's choice actually is a significant sign to give up the lock-based approach.
+
 2. dead locks would arise even in a traversal in the same direction:\
 consider we have node N1 with descendant nodes N11, N12, N13, N100 and N200.\
 consider we have node N2 with descendant nodes N21, N22, N23, N100 and N200.\
