@@ -164,11 +164,11 @@ especially the members defined by `std::vector<std::vector<std::size_t>>`
 would use the cache more efficiently if the inner vector could be replaced by a `std::array`
 (e.g. `std::vector<std::array<std::size_t, 2>>`)
 as a vector of arrays would allocate a single contiguous memory.
-the 2nd interface ([PersistentDAG_2.h](PersistentDAG_2.h)) replaces the use of a single
+the 2nd interface ([PersistentDAG_2.h](PersistentDAG_2.h)) replaces the use of a single vector:
 
 `std::vector<std::vector<std::size_t>>`
 
-with a number of
+with a number of vectors:
 
 `std::vector<std::array<std::size_t, 1>>`\
 `std::vector<std::array<std::size_t, 2>>`\
