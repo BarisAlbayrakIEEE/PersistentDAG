@@ -360,7 +360,7 @@ the elements of a vector (i.e. `std::size_t`) can be treated atomically\
 while the vector itself cannot.
 
 on the other hand, the lock-free approach could be mixed with the 3rd option below
-which would a persistent DAG with an inner node class (e.g. [2nd version of the Persistent DAG](PersistentDAG_2.h)).
+which would be a persistent DAG with an inner node class (e.g. [2nd version of the Persistent DAG](PersistentDAG_2.h)).
 the nodes store the state data via an atomic member.
 **problem with this mixed approach is that the atomic types are neither copyable nor movable.**
 the state of each node must be loaded and stored by atomic operations.
