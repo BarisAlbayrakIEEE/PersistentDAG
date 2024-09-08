@@ -172,11 +172,15 @@ especially the members defined by `std::vector<std::vector<std::size_t>>`
 would use the cache more efficiently if the inner vector could be replaced by a `std::array`
 (e.g. `std::vector<std::array<std::size_t, 2>>`)
 as a vector of arrays would allocate a single contiguous memory.
-the 2nd interface ([2nd version of the Persistent DAG](PersistentDAG_2.h)) replaces the use of a single\
-    `std::vector<std::vector<std::size_t>>`
-with a number of\
-    `std::vector<std::array<std::size_t, i>>`\
-    where i = 1,...k.
+the 2nd interface ([2nd version of the Persistent DAG](PersistentDAG_2.h)) replaces the use of a single
+
+`std::vector<std::vector<std::size_t>>`
+
+with a number of
+
+`std::vector<std::array<std::size_t, i>>`
+
+where i = 1,...k.
 the maximum value of k is defined statically.
 
 the indexing of the VectorTree and the vectors are all dependent/parallel.
