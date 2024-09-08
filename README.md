@@ -443,6 +443,7 @@ consider we store the nodes in the DAG like: `std::vector<node> _nodes`;
 `for (node* ancestor_node : new_node._ancestor_nodes);`
 4. relocate the ancestor pointer\
 `auto new_ancestor_node = _nodes.data() + (ancestor_node - rhs._nodes.data());`
+
 steps 3 and 4 must be repeated for the descendant nodes.
 the runtime complexity for this copy constructor is *2O(k1k2N)*
 where k1 and k2 are the average number of ancestor and descendant nodes for a node respectively.
