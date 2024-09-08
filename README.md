@@ -458,13 +458,13 @@ my tests show that the vector's copy constructor is around 5 times faster
 with `std::size_t` comparing to `std::vector<node>`
 with a simple non-trivially copyable node definition.
 
-obviouslly, the problems of working with indices are the *erase at the midle* and *insert at the midle* functions.
+obviously, the problems of working with indices are the *erase at the midle* and *insert at the midle* functions.
 the insert function is not needed as the DAG is a link-based data structure
 and so it does not need to preserve the order of the nodes while storing them in `std::vector`.
 hence, insert member function can be treated as a push-back.
 with the index-based approach, the time complexity of the erase member function is O(k1k2N)
 as all the indices after the erased index must be decremented.
-the solution is replacing the erase member function by `erase_by_swap_and_pop`
+the solution is replacing the erase member function by `swap-and-pop` idiom
 which swaps the last element with the element to be erased and pop the container.
 now, the element is erased by changing the index for only the last element which is O(1).
 the node relations including the last index can easily be updated.
