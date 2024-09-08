@@ -530,7 +530,7 @@ which performs copy construction on the objects of T.\
 Hence, if T objects have pointers to other T objects,\
 the structural sharing will just copy the pointers.\
 Therefore, reconsider using this interface in such a case.\
-The issue is explained in [Data Structures and Memory Management](#3- Data Structures and Memory Management) section.
+The issue is explained in [Data Structures and Memory Management](#3 -Data Structures and Memory Management) section.
 
 ## 7. Assumptions and Limitations:
 The only aim of the this DAG interface is to store the data (T) in a directed graph data structure
