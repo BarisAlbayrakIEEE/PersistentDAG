@@ -470,7 +470,7 @@ now, the element is erased by changing the index for only the last element which
 the node relations including the last index can easily be updated.
 however, there is one more work to do that
 the contained type T belonging to the last element must be informed.
-this is the *2nd INTERFACE OF THE DAG WITH THE CONTAINED TYPE T:*\
+this is the **2nd interface of the dag with the contained type T:**\
 `void set_DAG_node(_a_node_var_raw node)`
 
 defining the node relations via indices has an enhancement on the iteration for large DAGs.
