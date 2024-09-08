@@ -555,4 +555,4 @@ and many graph algorithms (e.g. shortest path) are missing.
 6. Loki [GitHub Pages](https://github.com/dutor/loki)
 7. C++ concurrency library [GitHub Pages](https://github.com/David-Haim/concurrencpp)
 8. C++ persistent data structures [GitHub Pages](https://github.com/arximboldi/immer)
-9. C++ Template class implementation of Hash Array Mapped Trie[GitHub Pages](https://github.com/chaelim/HAMT)
+9. C++ Template class implementation of Hash Array Mapped Trie [GitHub Pages](https://github.com/chaelim/HAMT)
