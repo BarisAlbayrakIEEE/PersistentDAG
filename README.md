@@ -170,12 +170,11 @@ the 2nd interface ([PersistentDAG_2.h](PersistentDAG_2.h)) replaces the use of a
 
 with a number of
 
-`std::vector<std::array<std::size_t, 1>>`
-`std::vector<std::array<std::size_t, 2>>`
-...
+`std::vector<std::array<std::size_t, 1>>`\
+`std::vector<std::array<std::size_t, 2>>`\
+...\
 `std::vector<std::array<std::size_t, k>>`
 
-where i = 1,...k.
 the value of k is defined statically.
 
 the indexing of the VectorTree and the vectors are all dependent/parallel.
