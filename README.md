@@ -3,7 +3,8 @@
 ## 1. Caution:
 the following two header files are kind of the two versions of the persistent DAG interface:
 1. [1st version of the Persistent DAG](PersistentDAG_1.h)
-2. [2nd version of the Persistent DAG](PersistentDAG_2.h)  
+2. [2nd version of the Persistent DAG](PersistentDAG_2.h)
+
 the 1st interface does not define a node class.
 however, the 2nd interface defines an inner node class templated by two parameters:
 * updatability type
