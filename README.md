@@ -106,13 +106,13 @@ the node itself does not have any invariant
 the state of the node depends on the state of the ancestor nodes (if exists)\
 and the invariant of the contained type T.
 
-[1st version of the Persistent DAG](PersistentDAG_1.h) defines the updatability as an enumeration
+[PersistentDAG_1.h](PersistentDAG_1.h) defines the updatability as an enumeration
 which is assigned to each node individually.
 however, this definition makes the updatability a runtime issue
 although in reality its usually a part of the definition.
 the 2nd interface solves this problem
 by defining an inner node class templated by the updatability type.
-see [2nd version of the Persistent DAG](PersistentDAG_2.h) for the details.
+see [PersistentDAG_2.h](PersistentDAG_2.h) for the details.
 
 As stated above, the most important feature of this DAG interface
 is the state data managed for all nodes together with the node relations.
@@ -158,13 +158,13 @@ accept for the cycled nodes which is stored in `std::unordered_map`.
 hence, the properties of `std::vector` is well known.
 however, a discussion about the contiguous containers in STL
 would provide a better understanding of the DAG.
-the DAG in the 1st interface ([1st version of the Persistent DAG](PersistentDAG_1.h))
+the DAG in the 1st interface ([PersistentDAG_1.h](PersistentDAG_1.h))
 stores the data in `std::vector` and does not use `std::array`.
 especially the members defined by `std::vector<std::vector<std::size_t>>`
 would use the cache more efficiently if the inner vector could be replaced by a `std::array`
 (e.g. `std::vector<std::array<std::size_t, 2>>`)
 as a vector of arrays would allocate a single contiguous memory.
-the 2nd interface ([2nd version of the Persistent DAG](PersistentDAG_2.h)) replaces the use of a single
+the 2nd interface ([PersistentDAG_2.h](PersistentDAG_2.h)) replaces the use of a single
 
 `std::vector<std::vector<std::size_t>>`
 
@@ -255,7 +255,7 @@ the backup data refers to
 - the node relation data (copy is not cheap) for `erase_deleted_nodes()`.
 
 hence, backup solution is not reasonable for `erase_deleted_nodes()`.
-the 2nd interface ([2nd version of the Persistent DAG](PersistentDAG_2.h)) embeds `erase_deleted_nodes()` into erase function
+the 2nd interface ([PersistentDAG_2.h](PersistentDAG_2.h)) embeds `erase_deleted_nodes()` into erase function
 without increasing the runtime complexity of the erase function significantly.
 
 ## 5. Concurrency:
@@ -356,7 +356,7 @@ the elements of a vector (i.e. `std::size_t`) can be treated atomically\
 while the vector itself cannot.
 
 on the other hand, the lock-free approach could be mixed with the 3rd option below
-which would be a persistent DAG with an inner node class (e.g. [2nd version of the Persistent DAG](PersistentDAG_2.h)).
+which would be a persistent DAG with an inner node class (e.g. [PersistentDAG_2.h](PersistentDAG_2.h)).
 the nodes store the state data via an atomic member.
 **problem with this mixed approach is that the atomic types are neither copyable nor movable.**
 the state of each node must be loaded and stored by atomic operations.
@@ -370,9 +370,9 @@ the 3rd approach for the concurrency comes from the Functional Programming (FP).
 i will not go through the details about the persistent data structures.
 in summary, this option provides a clean solution to the problem
 if the copy constructor of the DAG can be implemented efficiently.
-the 1st interface ([1st version of the Persistent DAG](PersistentDAG_1.h)) provides an effective copy constructor
+the 1st interface ([PersistentDAG_1.h](PersistentDAG_1.h)) provides an effective copy constructor
 following the data structures and algorithms arised from the procedural languages.
-the 2nd interface ([2nd version of the Persistent DAG](PersistentDAG_2.h)) improves the approach further.
+the 2nd interface ([PersistentDAG_2.h](PersistentDAG_2.h)) improves the approach further.
 
 any operation executed on the persistent DAG will follow the following steps:
 1. copy the DAG
