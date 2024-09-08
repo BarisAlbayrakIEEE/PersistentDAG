@@ -344,7 +344,7 @@ as explained for the doubly linked list.
 remember that the 1st and this 2nd approaches do not refer to a persistent/immutable data structure.
 
 as described for the 1st option, there are mainly two data shared by
-the main and the background threads in case of a mutating DAG:\
+the main and the background threads in case of a mutating DAG:
 - node state data and
 - node relation data
 
