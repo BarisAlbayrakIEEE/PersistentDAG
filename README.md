@@ -464,7 +464,7 @@ and so it does not need to preserve the order of the nodes while storing them in
 hence, insert member function can be treated as a push-back.
 with the index-based approach, the time complexity of the erase member function is O(k1k2N)
 as all the indices after the erased index must be decremented.
-the solution is replacing the erase member function by `swap-and-pop` idiom
+the solution is replacing the erase member function by **swap-and-pop idiom**
 which swaps the last element with the element to be erased and pop the container.
 now, the element is erased by changing the index for only the last element which is O(1).
 the node relations including the last index can easily be updated.
