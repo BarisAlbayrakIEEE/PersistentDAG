@@ -1,13 +1,13 @@
 # Persistent Directed Acyclic Graph (DAG)
 
-## 1. Caution:
+## 1. Caution
 the following two header files are kind of the two versions of the persistent DAG interface:
 1. [1st version of the Persistent DAG, PersistentDAG_1.h](PersistentDAG_1.h)
 2. [2nd version of the Persistent DAG, PersistentDAG_2.h](PersistentDAG_2.h)
 
 see the documentation of [PersistentDAG_2.h](PersistentDAG_2.h) for the differences between the two.
 
-## 2. Introduction:
+## 2. Introduction
 Graph is a kind of dynamic linked data structure.
 It allows both **many-to-one** and **one-to-many** relationships
 unlike a tree which only allows one-to-many.
@@ -144,7 +144,7 @@ this interface relies on this approach where a main thread performs the operatio
 while a background thread keeps inspecting and updating the states of the nodes.
 see the [Concurrency](#5-Concurrency) section for the details.
 
-## 3. Data Structures and Memory Management:
+## 3. Data Structures and Memory Management
 DAG stores the contained data in a VectorTree
 which is a fully persistent data structure and relies on the data sharing.
 see [persistent vector tree](VectorTree.h) for the details.
@@ -211,7 +211,7 @@ hence, the structural sharing can be utilized for the contained type T
 which minimizes the amount of copied data.
 the structural sharing is crucial when T stores large data.
 
-## 4. Iterators:
+## 4. Iterators
 STL style bidirectional iterator is defined as an inner class.
 **const iterator is public and non-const iterator is private for internal usage.*
 
@@ -260,7 +260,7 @@ hence, backup solution is not reasonable for `erase_deleted_nodes()`.
 the 2nd interface ([PersistentDAG_2.h](PersistentDAG_2.h)) embeds `erase_deleted_nodes()` into erase function
 without increasing the runtime complexity of the erase function significantly.
 
-## 5. Concurrency:
+## 5. Concurrency
 as stated above in the [Introduction](#2-Introduction) section,
 multithreading is required to maintain the state of the nodes by a background thread.
 as specified earlier, if the relations of a node is modified by a user action
@@ -274,7 +274,7 @@ for a concurrent implementation of a data structure we have three approaches:
 2. lock-free mutable (atomics)
 3. persistent immutable
 
-### 1st (lock-based) approach:
+### 1st (lock-based) approach
 the 1st (lock-based) approach requires a fine-grained locking scheme based on the nodes.
 however, maintaining the fine granularity for a DAG structure is not possible.
 this is quite well-known but let me describe the details
@@ -338,7 +338,7 @@ another weakness of the lock-based approach is that
 the data structure must be constrained to have a traversal only in one direction
 as explained for the doubly linked list.
 
-### 2nd (lock-free) approach:
+### 2nd (lock-free) approach
 remember that the 1st and this 2nd approaches do not refer to a persistent/immutable data structure.
 
 as described for the 1st option, there are mainly two data shared by
@@ -367,7 +367,7 @@ of the contiguous containers (`std::vector` or `std::array`) storing the node st
 hence, the most important requirement of a persistent data structure
 (i.e. the efficient copy constructor) is not satisfied.
 
-### 3rd (persistent DAG) approach:
+### 3rd (persistent DAG) approach
 the 3rd approach for the concurrency comes from the Functional Programming (FP).
 i will not go through the details about the persistent data structures.
 in summary, this option provides a clean solution to the problem
@@ -513,7 +513,7 @@ by injecting the lock-based approach partially into a persistent definition.
 additionally, the state of the DAG is an `std::atomic<bool>`
 which secures the DAG state without a higher level locking mechanism.
 
-## 6. Requirements:
+## 6. Requirements
 1. The contained type T must satisfy the following interface:
 ```
 std::copy_constructible<T>
@@ -531,7 +531,7 @@ the structural sharing will just copy the pointers.\
 Therefore, reconsider using this interface in such a case.\
 The issue is explained in [Data Structures and Memory Management](#3-Data-Structures-and-Memory-Management) section.
 
-## 7. Assumptions and Limitations:
+## 7. Assumptions and Limitations
 The only aim of the this DAG interface is to store the data (T) in a directed graph data structure
 while keeping the state of the data uptodate.
 hence, many fundamental operations of a DAG are excluded.
@@ -544,14 +544,3 @@ Node weight factors are not defined
 which means that all nodes are treated equally.
 Therefore, this is not a generalized DAG data structure
 and many graph algorithms (e.g. shortest path) are missing.
-
-## 8. Acknowledgments
-1. Alexandrescu, Modern C++ Design
-2. Ivan Cukic, Functional Programming in C++
-3. Anthony Williams, C++ Concurrency in Action
-4. Edouard Alligand & Joel Falcou, Practical C++ Metaprogramming
-5. Phil Bagwell, Ideal Hash Tries
-6. Loki [GitHub Pages](https://github.com/dutor/loki)
-7. C++ concurrency library [GitHub Pages](https://github.com/David-Haim/concurrencpp)
-8. C++ persistent data structures [GitHub Pages](https://github.com/arximboldi/immer)
-9. C++ Template class implementation of Hash Array Mapped Trie [GitHub Pages](https://github.com/chaelim/HAMT)
