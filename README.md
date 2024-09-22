@@ -45,8 +45,8 @@ waiting for the user to terminate the cycle by modifying the node relations.
 **Desing Methodology**
 This DAG interface follows up the concepts coming from:
 - **Object-Oriented Design (OOD):** Especially ([PersistentDAG_2.h](PersistentDAG_2.h)) relies on the generically defined types and visitor pattern
-- **Function-Oriented Design (FOD):** The concurency is based on the persistency
-- **Data-Oriented Design (DOD):** Replaces pointers by indeces, performs size/alignment adjustments and eliminates paddings
+- **Function-Oriented Design (FOD):** The concurency based on the persistency
+- **Data-Oriented Design (DOD):** Replace pointers by indeces, perform size/alignment adjustments and eliminates paddings, use arrays of structs
 
 The above list summarizes the design methodology. The details will be described in the following sections.
 
