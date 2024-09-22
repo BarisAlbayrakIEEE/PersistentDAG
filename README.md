@@ -8,6 +8,8 @@ the following two header files are kind of the two versions of the persistent DA
 see the documentation of [PersistentDAG_2.h](PersistentDAG_2.h) for the differences between the two.
 
 ## 2. Introduction
+
+**Definition**
 Graph is a kind of dynamic linked data structure.
 It allows both **many-to-one** and **one-to-many** relationships
 unlike a tree which only allows one-to-many.
@@ -40,6 +42,15 @@ the user intentionally can insist on the action causing the cycle.
 then, the action is executed and the DAG will take care of the cycle
 waiting for the user to terminate the cycle by modifying the node relations.
 
+**Desing Methodology**
+This DAG interface follows up the concepts coming from:
+- **Object-Oriented Design (OOD):** Especially ([PersistentDAG_2.h](PersistentDAG_2.h)) relies on the generically defined types and visitor pattern
+- **Function-Oriented Design (FOD):** The concurency is based on the persistency
+- **Data-Oriented Design (DOD):** Replaces pointers by indeces, performs size/alignment adjustments and eliminates paddings
+
+The above list summarizes the design methodology. The details will be described in the following sections.
+
+**State Management**
 as stated for the directed cycles, this interface defines a state for each node.
 the power of this interface is that it covers all the possible states,
 couples the state data with the node relations and adjusts the algorithms according to the state data.
@@ -126,8 +137,9 @@ the DAG inspects the ancestors of the new node if the node is required to have a
 if the ancestors are all *uptodate* the state of the new node is also *uptodate*.
 otherwise, *ancestor_fail*.
 if the states of the ancestors are all *uptodate*,
-the invariant of the contained type T is performed if T is *invariant_updatable*.
+the invariant of the contained type T is inspected if T is *invariant_updatable*.
 this is the whole operation for the node creation.
+
 on the other hand, in case of an update action, the paths in the current DAG are being modified
 which requires an inspection following the modified descendant paths.
 in the worst case, the length of the inspection approaches to the whole DAG
@@ -135,7 +147,7 @@ when the modified node approaches to the head node.
 a BFS traversal starting from the ancestors of the modified node is the best choice
 as the BFS is a level based algorithm which ensures a healthy ancestor state inspection for each node.
 **BFS solves the problem in O(N) while for DFS its quadratic**.
-DFS requires an additional traversal in ancestor direction
+DFS requires an additional traversal in the ancestor direction
 for each node traversed during the iteration in the descendant direction.
 hence, a modification in the paths of the DAG is the most complicated algorithm, O(N).
 in most of the DAG implementations, this algorithm is replaced by
@@ -367,13 +379,13 @@ of the contiguous containers (`std::vector` or `std::array`) storing the node st
 hence, the most important requirement of a persistent data structure
 (i.e. the efficient copy constructor) is not satisfied.
 
-### 3rd (persistent DAG) approach
+### 3rd (persistent DAG) approach (FP)
 the 3rd approach for the concurrency comes from the Functional Programming (FP).
 i will not go through the details about the persistent data structures.
 in summary, this option provides a clean solution to the problem
 if the copy constructor of the DAG can be implemented efficiently.
 the 1st interface ([PersistentDAG_1.h](PersistentDAG_1.h)) provides an effective copy constructor
-following the data structures and algorithms arised from the procedural languages.
+following the rules dictated by data-oriented design (DOD) methodology.
 the 2nd interface ([PersistentDAG_2.h](PersistentDAG_2.h)) improves the approach further.
 
 any operation executed on the persistent DAG will follow the following steps:
@@ -402,13 +414,12 @@ which ensures that the multithreaded solution with persistent data structure
 is more and more efficient than the single threaded solution
 as it isolates the 3rd process to a background thread.
 
-now, lets inspect the copy constructor in detail.
+lets inspect the copy constructor in detail, although, these are the basic issues in DOD (as this project is an extension to my resume).
 firstly, a DAG is a link based data structure like a tree.
-link based data structures are usualy implemented using a node class
+in traditional OOP, link based data structures are usualy implemented using a node class
 and defining the node relations via pointers.
 hence, a traditional (single threaded) DAG would have:
-1. inner node class with the ancestor nodes defined by a vector of raw pointers\
-and the descendant nodes defined by a vector of shared pointers
+1. inner node class with the ancestor nodes defined by a vector of raw pointers and the descendant nodes defined by a vector of shared pointers
 2. tail node
 3. head node
 
@@ -449,6 +460,7 @@ the key point in the above solution is using the relative adresses pointed by th
 which is provided by `std::vector` contiguous allocation.
 hence, a further optimization would be achieved by using the relative addresses (i.e. indices) directly
 in the definition of the node relations instead of the pointers.
+we achieved one of the fundamental rules of OOD that suggests replacing the pointers with indices.
 this will cancel out the need for the 3rd process and the copy constructor of the DAG would process
 only the vector's copy constructor which is very cheap.
 additionally, now, the vector's copy constructor performs bitwise copy with `std::memcpy`
@@ -457,7 +469,7 @@ my tests show that the vector's copy constructor is around 5 times faster
 with `std::size_t` comparing to `std::vector<node>`
 with a simple non-trivially copyable node definition.
 
-obviously, the problems of working with indices are the *erase at the midle* and *insert at the midle* functions.
+obviously, the problems of working with indices are the *erase at the middle* and *insert at the middle* functions.
 the insert function is not needed as the DAG is a link-based data structure
 and so it does not need to preserve the order of the nodes while storing them in `std::vector`.
 hence, insert member function can be treated as a push-back.
@@ -475,9 +487,9 @@ this is the **2nd interface of the dag with the contained type T:**\
 defining the node relations via indices has an enhancement on the iteration for large DAGs.
 see [Iterators](#4-Iterators) section for the details.
 
-on the other hand, the persistent DAG approach comes with a problem:
-- the node state data is shared between the main and the background threads because\
-the main thread copies the node state data together with the other members of the DAG\
+on the other hand, the persistent DAG approach comes with a problem: **shared data**.
+the node state data is shared between the main and the background threads because
+the main thread copies the node state data together with the other members of the DAG
 while the background thread modifies it.
 this problem is solved by securing the node state data by a mutex.
 the pseudocode for the main thread is as follows:
@@ -498,7 +510,7 @@ the pseudocode for the background thread is as follows:
 7. release the lock
 8. update the state of the DAG according to the final node state data.
 
-hence, the critical section for the mutex is the node state data copy process
+hence, the **critical section** for the mutex is the node state data copy process
 which is guaranteed to be very fast as its a bitwise copy process.
 hence, in this approach, the runtime of the main thread is very short
 which results with a very fast application from the user's point of view.
