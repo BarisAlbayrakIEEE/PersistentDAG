@@ -460,7 +460,7 @@ the key point in the above solution is using the relative adresses pointed by th
 which is provided by `std::vector` contiguous allocation.
 hence, a further optimization would be achieved by using the relative addresses (i.e. indices) directly
 in the definition of the node relations instead of the pointers.
-we achieved one of the fundamental rules of OOD that suggests replacing the pointers with indices.
+**we achieved one of the fundamental rules of OOD that suggests replacing the pointers with indices.**
 this will cancel out the need for the 3rd process and the copy constructor of the DAG would process
 only the vector's copy constructor which is very cheap.
 additionally, now, the vector's copy constructor performs bitwise copy with `std::memcpy`
