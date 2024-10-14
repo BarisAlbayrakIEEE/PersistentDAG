@@ -8,8 +8,7 @@ the following two header files are kind of the two versions of the persistent DA
 see the documentation of [PersistentDAG_2.h](PersistentDAG_2.h) for the differences between the two.
 
 ## 2. Introduction
-
-**Definition**
+**Definition**\
 Graph is a kind of dynamic linked data structure.
 It allows both **many-to-one** and **one-to-many** relationships
 unlike a tree which only allows one-to-many.
@@ -42,7 +41,7 @@ the user intentionally can insist on the action causing the cycle.
 then, the action is executed and the DAG will take care of the cycle
 waiting for the user to terminate the cycle by modifying the node relations.
 
-**Desing Methodology**
+**Desing Methodology**\
 This DAG interface follows up the concepts coming from:
 - **Object-Oriented Design (OOD):** Especially ([PersistentDAG_2.h](PersistentDAG_2.h)) relies on the generically defined types and visitor pattern
 - **Function-Oriented Design (FOD):** The concurency based on the persistency
@@ -50,83 +49,58 @@ This DAG interface follows up the concepts coming from:
 
 The above list summarizes the design methodology. The details will be described in the following sections.
 
-**State Management**
+**State Management**\
 as stated for the directed cycles, this interface defines a state for each node.
 the power of this interface is that it covers all the possible states,
 couples the state data with the node relations and adjusts the algorithms according to the state data.
 followings are the possible states for a node:
-1. *uptodate:*\
-the only valid state for a DAG node.\
-a DAG is in a valid state if all the nodes are *uptodate*.
-2. *invalid:*\
-**the invalid state is a result of an external definition**\
-**which is one of the two interfaces of the DAG with the contained type T.**\
-the conditions causing the invalid state must be defined by T.\
-in other words, invalid state simulates the invariant of T.\
-for example, consider the DAG is used by a geometry application which defines Vector type.\
-the Vector object is defined by 3 components in the space\
-and at least one of them must be non-zero by the Vector invariant.\
-a user action which makes all the 3 components zero\
+1. *uptodate:* the only valid state for a DAG node. a DAG is in a valid state if all the nodes are *uptodate*.
+2. *invalid:* **the invalid state is a result of an external definition**
+**which is one of the two interfaces of the DAG with the contained type T.**
+the conditions causing the invalid state must be defined by T.
+in other words, invalid state simulates the invariant of T.
+for example, consider the DAG is used by a geometry application which defines Vector type.
+the Vector object is defined by 3 components in the space
+and at least one of them must be non-zero by the Vector invariant.
+a user action which makes all the 3 components zero
 causes the node of the Vector to have invalid state.
-3. *ancestor_fail:*\
-means that one or more of the ancestor nodes of a node is **not** *uptodate*.\
-the node causing the ancestor_fail state may not be a direct ancestor of the node\
-as this state is propagated through the whole DAG along the descendant paths.\
-this is one of the hidden topological differences\
-between the ancestor and descendant definitions mentioned in the 2nd paragraph.
-4. *cycled:*\
-this is the state of a node involved in a directed cycle\
-and happens if the user insists on the action.\
-the algorithms are immune to the cycles and the iterations skip the cycled nodes.\
+3. *ancestor_fail:* means that one or more of the ancestor nodes of a node is **not** *uptodate*.
+the node causing the ancestor_fail state may not be a direct ancestor of the node as this state is propagated through the whole DAG along the descendant paths.
+this is one of the hidden topological differences between the ancestor and descendant definitions mentioned in the 2nd paragraph.
+4. *cycled:* this is the state of a node involved in a directed cycle and happens if the user insists on the action.
+the algorithms are immune to the cycles and the iterations skip the cycled nodes.
 the user can terminate a directed cycle by modifying the relations of the nodes.
-5. *deleted:*\
-this is another exceptional case like the *cycled* state.\
-descendant relations is the source of the memory management\
-where the usual implementation of a pointer based DAG defines the ownership.\
-however, this interface is based on the indices instead of pointers\
-which prevents defining a node with the ownership of the descendant nodes.\
-hence, the ownership relation in the descendant direction\
-is not by definition but injected into the algorithms conceptually.\
-this is the 2nd hidden topological difference between\
-the ancestor and descendant definitions mentioned in the 2nd paragraph.\
-*by definition, the nodes without descendant nodes can be deleted.*\
-*by definition, the nodes with descendant nodes can be deleted only together with the descendant nodes.*\
-**however, deleting a node without deleting the descendant nodes is an invalid operation.**\
-but, the DAG allows this invalid operation by setting the state of the node as deleted.\
-**the algorithms are immune to the deleted nodes and the iterations skip them.**\
-after the user clears the descendant nodes of the deleted node\
-(by deleting the descendant nodes or by replacing the ancestor nodes of them)\
-the DAG removes the node safely.
+5. *deleted:* this is another exceptional case like the *cycled* state.
+descendant relations is the source of the memory management where the usual implementation of a pointer based DAG defines the ownership.
+however, this interface is based on the indices instead of pointers which prevents defining a node with the ownership of the descendant nodes.
+hence, the ownership relation in the descendant direction is not by definition but injected into the algorithms conceptually.
+this is the 2nd hidden topological difference between the ancestor and descendant definitions mentioned in the 2nd paragraph.
+*by definition, the nodes without descendant nodes can be deleted.*
+*by definition, the nodes with descendant nodes can be deleted only together with the descendant nodes.*
+**however, deleting a node without deleting the descendant nodes is an invalid operation.**
+but, the DAG allows this invalid operation by setting the state of the node as deleted.
+**the algorithms are immune to the deleted nodes and the iterations skip them.**
+after the user clears the descendant nodes of the deleted node (by deleting the descendant nodes or by replacing the ancestor nodes of them) the DAG removes the node safely.
 
 the manipulation of the state of a DAG node
 requires another property that a node needs to have: *updatability*
 followings are the possible types for the updatability of a node:
-1. *non_updatable:*\
-the node has no updatability issue and always has *uptodate* state.\
+1. *non_updatable:* the node has no updatability issue and always has *uptodate* state.
 these nodes, by definition, cannot have ancestor nodes.
-2. *self_updatable:*\
-similar to non_updatable type, the node has no updatability issue and always has *uptodate* state.\
-these nodes, by definition, does not have ancestor nodes.\
-for example, a Point in a geometry application is self-updatable\
-as it does not have ancestor nodes and an invariant.
-3. *ancestor_updatable:*\
-the state of the node depends on the state of the ancestor nodes.\
-the state is *uptodate* if all the ancestor nodes are *uptodate*, otherwise, *ancestor_fail*.\
+2. *self_updatable:* similar to non_updatable type, the node has no updatability issue and always has *uptodate* state.
+these nodes, by definition, does not have ancestor nodes.
+for example, a Point in a geometry application is self-updatable as it does not have ancestor nodes and an invariant.
+3. *ancestor_updatable:* the state of the node depends on the state of the ancestor nodes.
+the state is *uptodate* if all the ancestor nodes are *uptodate*, otherwise, *ancestor_fail*.
 the node itself does not have any invariant
-4. *invariant_updatable:*\
-the state of the node depends on the state of the ancestor nodes (if exists)\
-and the invariant of the contained type T.
+4. *invariant_updatable:* the state of the node depends on the state of the ancestor nodes (if exists) and the invariant of the contained type T.
 
-[PersistentDAG_1.h](PersistentDAG_1.h) defines the updatability as an enumeration
-which is assigned to each node individually.
-however, this definition makes the updatability a runtime issue
-although in reality its usually a part of the definition.
-the 2nd interface ([PersistentDAG_2.h](PersistentDAG_2.h)) solves this problem
-by defining an inner node class templated by the updatability type.
+[PersistentDAG_1.h](PersistentDAG_1.h) defines the updatability as an enumeration which is assigned to each node individually.
+however, this definition makes the updatability a runtime issue although in reality its usually a part of the definition.
+the 2nd interface ([PersistentDAG_2.h](PersistentDAG_2.h)) solves this problem by defining an inner node class templated by the updatability type.
 see the documentation of [PersistentDAG_2.h](PersistentDAG_2.h) for the details.
 
-As stated above, the most important feature of this DAG interface
-is the state data managed for all nodes together with the node relations.
+As stated above, the most important feature of this DAG interface is the state data managed for all nodes together with the node relations.
 lets inspect two of the basic algorithms:
 - node creation and
 - node manipulation (i.e. updating the ancestots)
@@ -136,14 +110,11 @@ the current paths are just extended by this action as a new node cannot have des
 the DAG inspects the ancestors of the new node if the node is required to have ancestor nodes.
 if the ancestors are all *uptodate* the state of the new node is also *uptodate*.
 otherwise, *ancestor_fail*.
-if the states of the ancestors are all *uptodate*,
-the invariant of the contained type T is inspected if T is *invariant_updatable*.
+if the states of the ancestors are all *uptodate*, the invariant of the contained type T is inspected if T is *invariant_updatable*.
 this is the whole operation for the node creation.
 
-on the other hand, in case of an update action, the paths in the current DAG are being modified
-which requires an inspection following the modified descendant paths.
-in the worst case, the length of the inspection approaches to the whole DAG
-when the modified node approaches to the head node.
+on the other hand, in case of an update action, the paths in the current DAG are being modified which requires an inspection following the modified descendant paths.
+in the worst case, the length of the inspection approaches to the whole DAG when the modified node approaches to the head node.
 a BFS traversal starting from the ancestors of the modified node is the best choice
 as the BFS is a level based algorithm which ensures a healthy ancestor state inspection for each node.
 **BFS solves the problem in O(N) while for DFS its quadratic**.
@@ -308,10 +279,10 @@ this can be solved by assigning a lock order in each direction.
 the DAG is also a linked data structure.
 thus, the same discussion applies to the DAG also.
 however, we have three problems for the above locking scheme:
-1. the ancestor/descendant node definitions are dynamic unlike a linked list:\
-STL does not have a tool to lock mutexes in a dynamic container.\
-on the other hand, boost::lock has an overload which supports `std::vector<std::mutex>`.\
-however, STL has a reason while excluding the dynamic containers:\
+1. the ancestor/descendant node definitions are dynamic unlike a linked list:
+STL does not have a tool to lock mutexes in a dynamic container.
+on the other hand, boost::lock has an overload which supports `std::vector<std::mutex>`.
+however, STL has a reason while excluding the dynamic containers:
 - compile time locking ensures the RAII, exception safety and the intent of the lock while runtime does not
 - the locking process may include too many mutexes which is basically not reasonable and open to deadlocks.
 
