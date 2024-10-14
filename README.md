@@ -1,45 +1,35 @@
 # Persistent Directed Acyclic Graph (DAG)
 
 ## 1. Caution
-the following two header files are kind of the two versions of the persistent DAG interface:
+The following two header files are kind of the two versions of the persistent DAG interface:
 1. [1st version of the Persistent DAG, PersistentDAG_1.h](PersistentDAG_1.h)
 2. [2nd version of the Persistent DAG, PersistentDAG_2.h](PersistentDAG_2.h)
 
-see the documentation of [PersistentDAG_2.h](PersistentDAG_2.h) for the differences between the two.
+See the documentation of [PersistentDAG_2.h](PersistentDAG_2.h) for the differences between the two.
 
 ## 2. Introduction
 **Definition**\
 Graph is a kind of dynamic linked data structure.
-It allows both **many-to-one** and **one-to-many** relationships
-unlike a tree which only allows one-to-many.
-As a result of the many-to-one relation,
-a graph may have more than one paths between two nodes.
+It allows both **many-to-one** and **one-to-many** relationships unlike a tree which only allows one-to-many.
+As a result of the many-to-one relation, a graph may have more than one paths between two nodes.
 A graph data structure may be directed or not.
-The DAG here implements the ancestor and descendant directions **topologically**
-which yields a **directed graph** data structure.
-The topological difference with the ancestor and descendant relations
-is not realized by definition (both use `std::vector`)
-but **hidden in the algorithms conceptually**.
-this is a result of the procedural approach
-followed in the definition of the DAG.
-i will explain the issue in detail in the following paragraphs.
+The DAG here implements the ancestor and descendant directions **topologically** which yields a **directed graph** data structure.
+The topological difference with the ancestor and descendant relations is not realized by definition (both use `std::vector`) but **hidden in the algorithms conceptually**.
+This is a result of the procedural approach followed in the definition of the DAG.
+I will explain the issue in detail in the following paragraphs.
 
-**the invariant of the DAG requires the absence of directed cycles.**
-a cycle is a path with **more than one node**
-for which **the beginning and the end nodes are the same**.
-this DAG interface allows directed cycles in an *invalid state*.
-in other words, when a node is involved in a directed cycle,
-the state of the DAG becomes invalid until the cycle is defeated.
-**the algorithms are immune to the cycles and the iterations skip the cycled nodes.**
-in summary, as stated above, the DAG allows directed cycles in an invalid state.
-so, why not calling Directed Graph (DG) if cycles are allowed.
-the reason is to emphasize that the cycles are not desired.
-the algorithms are designed to keep the state of the DAG against the directed cycles.
-when a user action yields a directed cycle,
-the DAG terminates the action and inform the user about the cycle formation.
-the user intentionally can insist on the action causing the cycle.
-then, the action is executed and the DAG will take care of the cycle
-waiting for the user to terminate the cycle by modifying the node relations.
+**The invariant of the DAG requires the absence of directed cycles.**
+A cycle is a path with **more than one node** for which **the beginning and the end nodes are the same**.
+This DAG interface allows directed cycles in an *invalid state*.
+In other words, when a node is involved in a directed cycle, the state of the DAG becomes invalid until the cycle is defeated.
+**The algorithms are immune to the cycles and the iterations skip the cycled nodes.**
+In summary, as stated above, the DAG allows directed cycles in an invalid state.
+So, why not calling Directed Graph (DG) if cycles are allowed.
+The reason is to emphasize that the cycles are not desired.
+The algorithms are designed to keep the state of the DAG against the directed cycles.
+When a user action yields a directed cycle, the DAG terminates the action and inform the user about the cycle formation.
+The user intentionally can insist on the action causing the cycle.
+Then, the action is executed and the DAG will take care of the cycle waiting for the user to terminate the cycle by modifying the node relations.
 
 **Desing Methodology**\
 This DAG interface follows up the concepts coming from:
@@ -50,53 +40,47 @@ This DAG interface follows up the concepts coming from:
 The above list summarizes the design methodology. The details will be described in the following sections.
 
 **State Management**\
-as stated for the directed cycles, this interface defines a state for each node.
-the power of this interface is that it covers all the possible states,
-couples the state data with the node relations and adjusts the algorithms according to the state data.
-followings are the possible states for a node:
+As stated for the directed cycles, this interface defines a state for each node.
+The power of this interface is that it covers all the possible states, couples the state data with the node relations and adjusts the algorithms according to the state data.
+Followings are the possible states for a node:
 1. *uptodate:* the only valid state for a DAG node. a DAG is in a valid state if all the nodes are *uptodate*.
-2. *invalid:* **the invalid state is a result of an external definition**
-**which is one of the two interfaces of the DAG with the contained type T.**
-the conditions causing the invalid state must be defined by T.
-in other words, invalid state simulates the invariant of T.
-for example, consider the DAG is used by a geometry application which defines Vector type.
-the Vector object is defined by 3 components in the space
-and at least one of them must be non-zero by the Vector invariant.
-a user action which makes all the 3 components zero
-causes the node of the Vector to have invalid state.
-3. *ancestor_fail:* means that one or more of the ancestor nodes of a node is **not** *uptodate*.
-the node causing the ancestor_fail state may not be a direct ancestor of the node as this state is propagated through the whole DAG along the descendant paths.
-this is one of the hidden topological differences between the ancestor and descendant definitions mentioned in the 2nd paragraph.
-4. *cycled:* this is the state of a node involved in a directed cycle and happens if the user insists on the action.
-the algorithms are immune to the cycles and the iterations skip the cycled nodes.
-the user can terminate a directed cycle by modifying the relations of the nodes.
-5. *deleted:* this is another exceptional case like the *cycled* state.
-descendant relations is the source of the memory management where the usual implementation of a pointer based DAG defines the ownership.
-however, this interface is based on the indices instead of pointers which prevents defining a node with the ownership of the descendant nodes.
-hence, the ownership relation in the descendant direction is not by definition but injected into the algorithms conceptually.
-this is the 2nd hidden topological difference between the ancestor and descendant definitions mentioned in the 2nd paragraph.
-*by definition, the nodes without descendant nodes can be deleted.*
-*by definition, the nodes with descendant nodes can be deleted only together with the descendant nodes.*
-**however, deleting a node without deleting the descendant nodes is an invalid operation.**
-but, the DAG allows this invalid operation by setting the state of the node as deleted.
-**the algorithms are immune to the deleted nodes and the iterations skip them.**
-after the user clears the descendant nodes of the deleted node (by deleting the descendant nodes or by replacing the ancestor nodes of them) the DAG removes the node safely.
+2. *invalid:* **The invalid state is a result of an external definition** **which is one of the two interfaces of the DAG with the contained type T.**
+The conditions causing the invalid state must be defined by T.
+In other words, invalid state simulates the invariant of T.
+For example, consider the DAG is used by a geometry application which defines Vector type.
+The Vector object is defined by 3 components in the space and at least one of them must be non-zero by the Vector invariant.
+A user action which makes all the 3 components zero causes the node of the Vector to have invalid state.
+3. *ancestor_fail:* Means that one or more of the ancestor nodes of a node is **not** *uptodate*.
+The node causing the ancestor_fail state may not be a direct ancestor of the node as this state is propagated through the whole DAG along the descendant paths.
+This is one of the hidden topological differences between the ancestor and descendant definitions mentioned in the 2nd paragraph.
+4. *cycled:* This is the state of a node involved in a directed cycle and happens if the user insists on the action.
+The algorithms are immune to the cycles and the iterations skip the cycled nodes.
+The user can terminate a directed cycle by modifying the relations of the nodes.
+5. *deleted:* This is another exceptional case like the *cycled* state.
+The descendant relations is the source of the memory management where the usual implementation of a pointer based DAG defines the ownership.
+However, this interface is based on the indices instead of pointers which prevents defining a node with the ownership of the descendant nodes.
+Hence, the ownership relation in the descendant direction is not by definition but injected into the algorithms conceptually.
+This is the 2nd hidden topological difference between the ancestor and descendant definitions mentioned in the 2nd paragraph.
+*By definition, the nodes without descendant nodes can be deleted.*
+*By definition, the nodes with descendant nodes can be deleted only together with the descendant nodes.*
+**However, deleting a node without deleting the descendant nodes is an invalid operation.**
+But, the DAG allows this invalid operation by setting the state of the node as deleted.
+**The algorithms are immune to the deleted nodes and the iterations skip them.**
+After the user clears the descendant nodes of the deleted node (by deleting the descendant nodes or by replacing the ancestor nodes of them) the DAG removes the node safely.
 
-the manipulation of the state of a DAG node
-requires another property that a node needs to have: *updatability*
-followings are the possible types for the updatability of a node:
-1. *non_updatable:* the node has no updatability issue and always has *uptodate* state.
-these nodes, by definition, cannot have ancestor nodes.
-2. *self_updatable:* similar to non_updatable type, the node has no updatability issue and always has *uptodate* state.
-these nodes, by definition, does not have ancestor nodes.
-for example, a Point in a geometry application is self-updatable as it does not have ancestor nodes and an invariant.
-3. *ancestor_updatable:* the state of the node depends on the state of the ancestor nodes.
-the state is *uptodate* if all the ancestor nodes are *uptodate*, otherwise, *ancestor_fail*.
-the node itself does not have any invariant
-4. *invariant_updatable:* the state of the node depends on the state of the ancestor nodes (if exists) and the invariant of the contained type T.
+The manipulation of the state of a DAG node requires another property that a node needs to have: *updatability* followings are the possible types for the updatability of a node:
+1. *non_updatable:* The node has no updatability issue and always has *uptodate* state.
+These nodes, by definition, cannot have ancestor nodes.
+2. *self_updatable:* Similar to non_updatable type, the node has no updatability issue and always has *uptodate* state.
+These nodes, by definition, does not have ancestor nodes.
+For example, a Point in a geometry application is self-updatable as it does not have ancestor nodes and an invariant.
+3. *ancestor_updatable:* The state of the node depends on the state of the ancestor nodes.
+The state is *uptodate* if all the ancestor nodes are *uptodate*, otherwise, *ancestor_fail*.
+The node itself does not have any invariant
+4. *invariant_updatable:* The state of the node depends on the state of the ancestor nodes (if exists) and the invariant of the contained type T.
 
 [PersistentDAG_1.h](PersistentDAG_1.h) defines the updatability as an enumeration which is assigned to each node individually.
-however, this definition makes the updatability a runtime issue although in reality its usually a part of the definition.
+However, this definition makes the updatability a runtime issue although in reality its usually a part of the definition.
 the 2nd interface ([PersistentDAG_2.h](PersistentDAG_2.h)) solves this problem by defining an inner node class templated by the updatability type.
 see the documentation of [PersistentDAG_2.h](PersistentDAG_2.h) for the details.
 
