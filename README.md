@@ -204,7 +204,7 @@ by a BFS traversal in the descendant direction starting from the updated node.
 The traversal starts from the head node if the DAG contains a directed cycle.
 This process is executed by the background thread.
 
-For a concurrent implementation of a data structure we have three approaches:
+For the concurrent implementation of a data structure we have three approaches:
 1. lock-based mutable
 2. lock-free mutable
 3. persistent immutable
