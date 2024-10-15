@@ -82,9 +82,11 @@ The node itself does not have any invariant
 4. *invariant_updatable:* The state of the node depends on the state of the ancestor nodes (if exists) and the invariant of the contained type T.
 
 [PersistentDAG_1.h](PersistentDAG_1.h) defines the updatability as an enumeration which is assigned to each node individually.
+This is a result of DOD approach.
 **However, this definition makes the updatability a runtime issue although in reality its usually a part of the definition.**
-the 2nd interface ([PersistentDAG_2.h](PersistentDAG_2.h)) solves this problem by defining an inner node class templated by the updatability type.
-see the documentation of [PersistentDAG_2.h](PersistentDAG_2.h) for the details.
+Hence, OOD approach looks more reasonable in case of the updatability.
+The 2nd interface ([PersistentDAG_2.h](PersistentDAG_2.h)) solves this problem by defining an inner node class templated by the updatability type.
+See the documentation of [PersistentDAG_2.h](PersistentDAG_2.h) for the details.
 
 As stated above, the most important feature of this DAG interface is the state data managed for all nodes together with the node relations.
 Lets inspect two of the basic algorithms:
