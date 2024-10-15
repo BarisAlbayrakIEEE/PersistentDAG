@@ -36,7 +36,7 @@ Then, the action is executed and the DAG will take care of the cycle waiting for
 This DAG interface follows up the concepts coming from:
 - **Object-Oriented Design (OOD):** Especially ([PersistentDAG_2.h](PersistentDAG_2.h)) relies on the generically defined types and visitor pattern
 - **Function-Oriented Design (FOD):** The concurency based on the persistency
-- **Data-Oriented Design (DOD):** Replace pointers by indeces, perform size/alignment adjustments and eliminate paddings, use struct of arrays
+- **Data-Oriented Design (DOD):** Use of the indices instead of the pointers, memory management (alignment and padding), struct of arrays
 
 The above list summarizes the design methodology. The details will be described in the following sections.
 
