@@ -231,8 +231,7 @@ STL does not have a tool to lock mutexes in a dynamic container.
 On the other hand, boost::lock has an overload which supports `std::vector<std::mutex>`.
 However, STL has a reason while excluding the dynamic containers:
 - compile time locking ensures the RAII, exception safety and the intent of the lock while runtime does not
-- the locking process may include too many mutexes which is basically not reasonable and open to practical deadlocks.
-
+- the locking process may include too many mutexes which is basically not reasonable and open to practical deadlocks.\
 The STL's choice actually is a significant sign to give up the lock-based approach.
 2. Dead locks would arise even in a traversal in the same direction:\
 Consider we have node N1 with descendant nodes N11, N12, N13, N100 and N200.\
