@@ -265,14 +265,11 @@ As described for the 1st option, there are mainly two data shared by the main an
 - node relation data
 
 Node state data could be stored in a node class as an atomic type for the thread safety.
-However, the same does not apply to the ancestor and descendant nodes due to two reasons:
-1. The ancestor and descendant relations are coupled as explained in the 1st approach.
+However, the same does not apply to the ancestor and descendant nodes as the ancestor and descendant relations are coupled.
 Hence, like the lock-based approach, the ancestor and descendant relations must be loaded and stored together by atomic operations.
 This is not possible due to the reasons explained in the 1st approach.
-2. Ancestor and descendant relations are runtime dependent and stored in a `std::vector<std::size_t>` each.
-The elements of a vector (i.e. `std::size_t`) can be treated atomically while the vector itself cannot.
 
-On the other hand, the lock-free approach could be mixed with the 3rd option below
+On the other hand, the lock-free approach could be mixed with the 3rd option below.
 This would be a persistent DAG with an inner node class (e.g. [PersistentDAG_2.h](PersistentDAG_2.h)).
 The nodes store the state data via an atomic member.
 **Problem with this mixed approach is that the atomic types are neither copyable nor movable.**
