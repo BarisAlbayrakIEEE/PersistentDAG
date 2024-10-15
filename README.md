@@ -185,8 +185,8 @@ Hence, the index usage provides highly efficient iteration for the large DAGs.
 - The iterators implements both **BFS** and **DFS**.
 I will not go into details with the details of BFS and DFS and the use cases for each.
 However, the internal functions (e.g. state propogation, state update) mainly uses BFS as it provides a level traversal.
-- As specified above, the DAG iterator must store auxilary data (i.e. the visited nodes) due to the many-to-one relationship
-Due to this additional memory allocation the iterator may throw `std::bad_alloc` exception.
+- As specified above, the DAG iterator must store auxilary data (i.e. the visited nodes) due to the many-to-one relationship.
+This additional memory allocation may cause the iterator throw `std::bad_alloc` exception.
 **Hence, the functions using the DAG iterator shall consider the exception safety.**
 The persistency provides strong exception safety for the public functions.
 However, the DAG has two private mutating functions to be executed by the background thread.
