@@ -115,7 +115,9 @@ while a background thread keeps inspecting and updating the states of the nodes.
 See the [Concurrency](#5-Concurrency) section for the details.
 
 ## 3. Data Structures and Memory Management
-DAG stores the contained data in a VectorTree which is a fully persistent data structure and relies on the data sharing.
+**All the discussions in this section corresponds to some aspects of DOD approach (e.g. structs of arrays).**
+
+The DAG stores the contained data in a VectorTree which is a fully persistent data structure and relies on the data sharing.
 See [persistent vector tree](VectorTree.h) for the details.
 
 The DAG requires internal data structures in order to define the node relations and the states.
