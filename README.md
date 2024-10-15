@@ -236,8 +236,8 @@ However, STL has a reason while excluding the dynamic containers:
 Consider we have node N1 with descendant nodes N11, N12, N13, N100 and N200.\
 Consider we have node N2 with descendant nodes N21, N22, N23, N100 and N200.\
 Lets ignore the ancestor nodes for simplicity.
-Consider two threads work on N1 and N2 respectively.\
-Both threads need to acquire the locks as specified in case of the doubly linked list.\
+Consider two threads work on N1 and N2 respectively.
+Both threads need to acquire the locks as specified in the doubly linked list example.\
 Assume thread1 acquired the locks on N1, N11, N12, N13 and N100.\
 Assume thread2 acquired the locks on N2, N21, N22, N23 and N200.\
 So thread1 waits for N200 holding N100 while thread2 waits for N100 holding N200.
