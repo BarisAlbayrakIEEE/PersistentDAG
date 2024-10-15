@@ -306,7 +306,7 @@ The 1st one can be improved by improving the cache usage and the bitwise copy.
 However, the 3rd one cannot use the cache effectively as the DAG is not a linear data structure.
 The ancestors of a node can be very far from the node which would not be fetched to the cache together with the node.
 Hence, the 1st process is more and more faster than the 3rd one which ensures that the multithreaded solution with persistent data structure
-is more and more efficient than the single threaded solution as it isolates the 3rd process to a background thread.
+is more and more efficient than the single threaded solution as it isolates the long-running 3rd process to a background thread.
 
 Lets inspect the copy constructor in detail, although, these are the basic issues in DOD (as this project is an extension to my resume).
 Firstly, a DAG is a link based data structure like a tree.
