@@ -189,10 +189,8 @@ However, the internal functions (e.g. state propogation, state update) mainly us
 This additional memory allocation may cause the iterator throw `std::bad_alloc` exception.
 **Hence, the functions using the DAG iterator shall consider the exception safety.**
 The persistency provides strong exception safety for the public functions.
-However, the DAG has two private mutating functions to be executed by the background thread.
-1. `update_DAG_state()`
-2. `erase_deleted_nodes()`
-- The strong exception safety is achieved by storing a backup data that would be modified during the function execution.
+However, the DAG has two private mutating functions to be executed by the background thread: `update_DAG_state()` and `erase_deleted_nodes()`.
+In these two functions, the strong exception safety is achieved by storing a backup data that would be modified during the function execution.
 The backup data refers to the states of the nodes (copy is cheap) for `update_DAG_state()` and the node relation data (copy is not cheap) for `erase_deleted_nodes()`.
 Hence, backup solution is not reasonable for `erase_deleted_nodes()`.
 The 2nd interface ([PersistentDAG_2.h](PersistentDAG_2.h)) embeds `erase_deleted_nodes()` into erase function
