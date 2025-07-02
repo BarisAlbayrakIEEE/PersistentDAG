@@ -118,7 +118,7 @@ See the [Concurrency](#5-Concurrency) section for the details.
 **All the discussions in this section corresponds to some aspects of DOD approach (e.g. structs of arrays).**
 
 The DAG stores the contained data in a `VectorTree` which is a fully persistent data structure and relies on the data sharing.
-See [persistent vector tree](VectorTree.h) for the details.
+See [persistent vector tree](https://github.com/BarisAlbayrakIEEE/VectorTree.git) for the details.
 
 The DAG requires internal data structures in order to define the node relations and the states.
 Additionally, some auxilary data is needed such as the cycled nodes.
