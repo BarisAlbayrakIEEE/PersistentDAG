@@ -32,7 +32,7 @@
 #include <iterator>
 #include <concepts>
 
-namespace DAGNamespace {
+namespace ROQRNamespace {
 	template <
 		typename T,
 		std::size_t N,

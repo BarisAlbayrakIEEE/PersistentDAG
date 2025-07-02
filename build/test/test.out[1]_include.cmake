@@ -1,0 +1,5 @@
+if(EXISTS "/home/administrator/Documents/Work/Kod/cpp/PersistentDAG/build/test/test.out[1]_tests.cmake")
+  include("/home/administrator/Documents/Work/Kod/cpp/PersistentDAG/build/test/test.out[1]_tests.cmake")
+else()
+  add_test(test.out_NOT_BUILT test.out_NOT_BUILT)
+endif()

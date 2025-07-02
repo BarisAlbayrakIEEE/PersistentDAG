@@ -117,12 +117,20 @@ See the [Concurrency](#5-Concurrency) section for the details.
 ## 3. Data Structures and Memory Management
 **All the discussions in this section corresponds to some aspects of DOD approach (e.g. structs of arrays).**
 
-The DAG stores the contained data in a VectorTree which is a fully persistent data structure and relies on the data sharing.
+The DAG stores the contained data in a `VectorTree` which is a fully persistent data structure and relies on the data sharing.
 See [persistent vector tree](VectorTree.h) for the details.
 
 The DAG requires internal data structures in order to define the node relations and the states.
 Additionally, some auxilary data is needed such as the cycled nodes.
 All the internal data is stored in `std::vector` accept for the cycled nodes which is stored in `std::unordered_map`.
+The reason why `std::vector` is prefered instead of `VectorTree` lies in the benchmark of `VectorTree`.
+See [benchmark results](https://github.com/BarisAlbayrakIEEE/VectorTree/tree/master/benchmark/benchmark_results.pdf) to review the results.
+The benchmark compares the performance of `VectorTree` with `std::vector` and a primitive persistent vector.
+The internal data of the DAG defined by `std::vector` can be considered as the primitive persistent vector of the benchmark.
+As the benchmark shows, the primitive persistent vector has the worst performance if the size of the container is large.
+However, the its' runtime for the fundamental operations used by the DAG (e.g. `emplace_back`) is 
+around a couple of miliseconds and can be neglected safely.
+Hence, there is no need to use `VectorTree` instead of `std::vector` as the `VectorTree` doubles the memory by default.
 
 `std::vector` is the main container in STL and used widely.
 Hence, the properties of `std::vector` is well known.

@@ -1,0 +1,10 @@
+/home/administrator/Documents/Work/Kod/cpp/PersistentDAG/build/CMakeFiles/edit_cache.dir
+/home/administrator/Documents/Work/Kod/cpp/PersistentDAG/build/CMakeFiles/rebuild_cache.dir
+/home/administrator/Documents/Work/Kod/cpp/PersistentDAG/build/src/CMakeFiles/edit_cache.dir
+/home/administrator/Documents/Work/Kod/cpp/PersistentDAG/build/src/CMakeFiles/rebuild_cache.dir
+/home/administrator/Documents/Work/Kod/cpp/PersistentDAG/build/test/CMakeFiles/test.out.dir
+/home/administrator/Documents/Work/Kod/cpp/PersistentDAG/build/test/CMakeFiles/edit_cache.dir
+/home/administrator/Documents/Work/Kod/cpp/PersistentDAG/build/test/CMakeFiles/rebuild_cache.dir
+/home/administrator/Documents/Work/Kod/cpp/PersistentDAG/build/benchmark/CMakeFiles/benchmark.out.dir
+/home/administrator/Documents/Work/Kod/cpp/PersistentDAG/build/benchmark/CMakeFiles/edit_cache.dir
+/home/administrator/Documents/Work/Kod/cpp/PersistentDAG/build/benchmark/CMakeFiles/rebuild_cache.dir

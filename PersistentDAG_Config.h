@@ -1,2 +1,0 @@
-#define GeometryLibrary_OCCT_VERSION_MAJOR  
-#define GeometryLibrary_OCCT_VERSION_MINOR 

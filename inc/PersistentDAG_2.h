@@ -1,10 +1,10 @@
 /*!
  * A persistent DAG interface
  * 
- * this interface is the next version for PersistentDAG_2.
+ * this interface is the next version for PersistentDAG.
  * the following issues are covered in this version:
  *     1. The updatability of a node is a part of the static type definition
- *        which solves the problem in PersistentDAG_2.h
+ *        which solves the problem in PersistentDAG.h
  *        about the runtime updatability definition
  *     2. nodes are classified based on the number of ancestors
  *        in order to have a better memory allocation
@@ -120,72 +120,72 @@
 #include <concepts>
 #include <limits.h>
 #include <mutex>
+#include <optional>
 #include <future>
 #include "read_only_queue_wrapper.h"
-#include "VectorTree.h"
+#include "../../VectorTree/inc/VectorTree.h"
 
-namespace DAGNamespace {
+namespace PersistentDAGNamespace_2 {
+	using namespace VectorTreeNamespace;
+	using namespace ROQRNamespace;
+	
     /*!
      * types for template parameters
      */
+	struct traversal_type_BFS;
+	struct traversal_type_DFS;
+	struct direction_type_ancestor;
+	struct direction_type_descendant;
     struct DAG_node_type__non_updatable;
     struct DAG_node_type__ancestor_updatable;
     struct DAG_node_type__invariant_updatable;
-    struct traversal_type_BFS;
-    struct traversal_type_DFS;
-    struct direction_type_ancestor;
-    struct direction_type_descendant;
 
-    /*!
-     * @brief
-     * erases the element with the input index
-     * by swapping with the last element
-     * followed by a pop_back
-     * only the index (i.e. iterator) of the last element is invalidated
-     * and must be corrected
-     */
-    template <typename T>
-    inline void erase__by_swap_and_pop__std_vector__nonconst(
-        std::vector<T>& vec,
-        std::size_t index_erase)
-    {
-        auto& element_erase{ vec[index_erase] };
-        auto& element_last{ vec.back() };
-        std::swap(element_erase, element_last);
-        vec.pop_back();
-    };
+	enum class EDAG_node_states : unsigned char {
+		uptodate,
+		invariant_fail,
+		ancestor_fail,
+		directed_cycle,
+		deleted
+	};
 
-    /*!
-     * @brief
-     * erases the element with the input index
-     * by swapping with the last element
-     * followed by a pop_back
-     * only the index (i.e. iterator) of the last element is invalidated
-     * and must be corrected
-    */
-    template <typename T>
-    [[nodiscard]] inline auto erase__by_swap_and_pop__std_vector__const(
-        const std::vector<T>& vec1,
-        std::size_t index_erase)
-        -> std::vector<T>
-    {
-        std::vector<T> vec2{ vec1 };
-        auto& element_erase{ vec2[index_erase] };
-        auto& element_last{ vec2.back() };
-        std::swap(element_erase, element_last);
-        vec2.pop_back();
-        return vec2;
-    };
+	/*!
+	 * @brief erases the element with the input index
+	 * by swapping with the last element
+	 * followed by a pop_back
+	 * only the index (i.e. iterator) of the last element is invalidated
+	 * and must be corrected
+	 */
+	template <typename T>
+	inline void erase__by_swap_and_pop__std_vector__nonconst(
+		std::vector<T>& vec,
+		std::size_t index_erase)
+	{
+		auto& element_erase{ vec[index_erase] };
+		auto& element_last{ vec.back() };
+		std::swap(element_erase, element_last);
+		vec.pop_back();
+	};
 
-    /*!
-     * DAG_node state enumeration
-     */
-    enum class EDAG_node_states : unsigned char {
-        uptodate,
-        ancestor_fail,
-        invalid,
-        cycled,
-        deleted};
+	/*!
+	 * @brief erases the element with the input index
+	 * by swapping with the last element
+	 * followed by a pop_back
+	 * only the index (i.e. iterator) of the last element is invalidated
+	 * and must be corrected
+	 */
+	template <typename T>
+	[[nodiscard]] inline auto erase__by_swap_and_pop__std_vector__const(
+		const std::vector<T>& vec1,
+		std::size_t index_erase)
+		-> std::vector<T>
+	{
+		std::vector<T> vec2{ vec1 };
+		auto& element_erase{ vec2[index_erase] };
+		auto& element_last{ vec2.back() };
+		std::swap(element_erase, element_last);
+		vec2.pop_back();
+		return vec2;
+	};
 
     /*!
      * @brief limit for static allocation
@@ -285,18 +285,18 @@ namespace DAGNamespace {
 
 
 	/*!
-	 * @brief PersistentDAG_2 class
+	 * @brief PersistentDAG class
 	 * @see the main documentation of this header file for the details
 	 */
 	template <typename T>
-    class PersistentDAG_2 {
+    class PersistentDAG {
         /// forward declarations
-		template <typename DAG_type, typename traversal_type, typename direction_type>
-        friend struct DAG_iterator_base;
-        template <typename DAG_type, typename traversal_type, typename direction_type>
-        friend class DAG_const_iterator;
-        template <typename DAG_type, typename traversal_type, typename direction_type>
-        friend class DAG_iterator;
+		template <typename PersistentDAG_type, typename traversal_type, typename direction_type>
+        friend struct PersistentDAG_iterator_base;
+        template <typename PersistentDAG_type, typename traversal_type, typename direction_type>
+        friend class PersistentDAG_const_iterator;
+        template <typename PersistentDAG_type, typename traversal_type, typename direction_type>
+        friend class PersistentDAG_iterator;
 
 
 
@@ -321,7 +321,7 @@ namespace DAGNamespace {
 		template <typename DAG_node_type, typename ancestor_count_type>
 			requires (CDAG_node__0<DAG_node_type, ancestor_count_type>)
 		class DAG_node<DAG_node_type, ancestor_count_type> {
-			friend class PersistentDAG_2<T>;
+			friend class PersistentDAG<T>;
 
 			using _u_ancestor_nodes = std::vector<_a_node_location>;
 
@@ -340,7 +340,7 @@ namespace DAGNamespace {
 			template <typename DAG_node_type2 = DAG_node_type>
 				requires (std::is_same_v<DAG_node_type, DAG_node_type__non_updatable>)
 			[[nodiscard]] auto get_final_state__default(
-				PersistentDAG_2<T> const*,
+				PersistentDAG<T> const*,
 				T const*,
 				EDAG_node_states) const
 				-> EDAG_node_states
@@ -351,7 +351,7 @@ namespace DAGNamespace {
 			template <typename DAG_node_type2 = DAG_node_type>
 				requires (std::is_same_v<DAG_node_type, DAG_node_type__invariant_updatable>)
 			[[nodiscard]] auto get_final_state__default(
-				PersistentDAG_2<T> const*,
+				PersistentDAG<T> const*,
 				T const* data,
 				EDAG_node_states state__initial) const
 				-> EDAG_node_states
@@ -361,13 +361,13 @@ namespace DAGNamespace {
 					state__final = EDAG_node_states::uptodate;
 				}
 				else {
-					state__final = EDAG_node_states::invalid;
+					state__final = EDAG_node_states::invariant_fail;
 				}
 				return state__final;
 			};
 
 			[[nodiscard]] auto get_final_state__propogate(
-				PersistentDAG_2<T> const*,
+				PersistentDAG<T> const*,
 				T const*,
 				EDAG_node_states state__initial,
 				EDAG_node_states) const
@@ -386,7 +386,7 @@ namespace DAGNamespace {
 		template <typename ancestor_count_type>
 			requires (CDAG_node__n<DAG_node_type__ancestor_updatable, ancestor_count_type>)
 		class DAG_node<DAG_node_type__ancestor_updatable, ancestor_count_type> {
-			friend class PersistentDAG_2<T>;
+			friend class PersistentDAG<T>;
 
 			using _u_ancestor_nodes = _a_node_locations__cond<ancestor_count_type::value>;
 			_u_ancestor_nodes _ancestor_nodes;
@@ -409,12 +409,12 @@ namespace DAGNamespace {
 			};
 
 			[[nodiscard]] auto get_final_state__default__helper(
-				PersistentDAG_2<T> const* DAG_,
+				PersistentDAG<T> const* DAG_,
 				T const*,
 				EDAG_node_states state__initial)
 				-> EDAG_node_states
 			{
-				if (state__initial == EDAG_node_states::deleted || state__initial == EDAG_node_states::cycled) {
+				if (state__initial == EDAG_node_states::deleted || state__initial == EDAG_node_states::directed_cycle) {
 					return state__initial;
 				}
 
@@ -439,7 +439,7 @@ namespace DAGNamespace {
 			};
 
 			[[nodiscard]] auto get_final_state__default(
-				PersistentDAG_2<T> const* DAG_,
+				PersistentDAG<T> const* DAG_,
 				T const* data,
 				EDAG_node_states state__initial)
 				-> EDAG_node_states
@@ -448,7 +448,7 @@ namespace DAGNamespace {
 			};
 
 			[[nodiscard]] auto get_final_state__propogate(
-				PersistentDAG_2<T> const* DAG_,
+				PersistentDAG<T> const* DAG_,
 				T const*,
 				EDAG_node_states state__initial,
 				EDAG_node_states state__propogate)
@@ -489,7 +489,7 @@ namespace DAGNamespace {
 		template <typename ancestor_count_type>
 			requires (CDAG_node__n<DAG_node_type__invariant_updatable, ancestor_count_type>)
 		class DAG_node<DAG_node_type__invariant_updatable, ancestor_count_type> {
-			friend class PersistentDAG_2<T>;
+			friend class PersistentDAG<T>;
 
 			using _u_ancestor_nodes = _a_node_locations__cond<ancestor_count_type::value>;
 			_u_ancestor_nodes _ancestor_nodes;
@@ -512,12 +512,12 @@ namespace DAGNamespace {
 			};
 
 			[[nodiscard]] auto get_final_state__default__helper(
-				PersistentDAG_2<T> const* DAG_,
+				PersistentDAG<T> const* DAG_,
 				T const*,
 				EDAG_node_states state__initial)
 				-> EDAG_node_states
 			{
-				if (state__initial == EDAG_node_states::deleted || state__initial == EDAG_node_states::cycled) {
+				if (state__initial == EDAG_node_states::deleted || state__initial == EDAG_node_states::directed_cycle) {
 					return state__initial;
 				}
 
@@ -542,20 +542,20 @@ namespace DAGNamespace {
 			};
 
 			[[nodiscard]] auto get_final_state__default(
-				PersistentDAG_2<T> const* DAG_,
+				PersistentDAG<T> const* DAG_,
 				T const* data,
 				EDAG_node_states state__initial)
 				-> EDAG_node_states
 			{
 				auto state__final{ get_final_state__default__helper(DAG_, data, state__initial) };
 				if (state__final == EDAG_node_states::uptodate && !data->inspect_invariant()) {
-					state__final = EDAG_node_states::invalid;
+					state__final = EDAG_node_states::invariant_fail;
 				}
 				return state__final;
 			};
 
 			[[nodiscard]] auto get_final_state__propogate(
-				PersistentDAG_2<T> const* DAG_,
+				PersistentDAG<T> const* DAG_,
 				T const* data,
 				EDAG_node_states state__initial,
 				EDAG_node_states state__propogate)
@@ -575,7 +575,7 @@ namespace DAGNamespace {
 					}
 					if (all_uptodate) {
 						if (!data->inspect_invariant()) {
-							state__final = EDAG_node_states::invalid;
+							state__final = EDAG_node_states::invariant_fail;
 						}
 						else {
 							state__final = EDAG_node_states::uptodate;
@@ -708,6 +708,21 @@ namespace DAGNamespace {
 
 
 
+		/*!
+		 * @brief gets the end node of the iteration
+		 */
+		template <typename direction_type>
+		[[nodiscard]] inline _a_node_location get_end_node() const noexcept
+		{
+			if constexpr (std::is_same_v<direction_type, direction_type_ancestor>) {
+				return _node_location__head;
+			}
+			return _node_location__tail;
+		};
+
+
+
+
 
 		/*!
 		 * base class for STL style iterators
@@ -752,15 +767,13 @@ namespace DAGNamespace {
 		 *     hence, the increment and decrement operators of the iterators may throw.
 		 *     the strong exception safety must be considered while using the iterators
 		 */
-		template <typename DAG_type, typename traversal_type, typename direction_type>
-		struct DAG_iterator_base
+		template <typename PersistentDAG_type, typename traversal_type, typename direction_type>
+		struct PersistentDAG_iterator_base
 		{
-			friend class PersistentDAG_2<T>;
-			friend class DAG_const_iterator<DAG_type, traversal_type, direction_type>;
-			friend class DAG_iterator<DAG_type, traversal_type, direction_type>;
+			friend class PersistentDAG<T>;
 
 			/// local alises
-			using _u_DAG_raw = DAG_type const*;
+			using _u_DAG_raw = PersistentDAG_type const*;
 			using _u_pool_type = std::conditional_t<
 				std::is_same_v<traversal_type, traversal_type_BFS>,
 				std::queue<_a_que_wrap_var_val>,
@@ -797,15 +810,15 @@ namespace DAGNamespace {
 				_nodes__visited[ANCESTOR_COUNT__EXCEED] = std::vector<bool>(DAG_raw->_nodes_n.size());
 			};
 
-			DAG_iterator_base() noexcept = default;
+			PersistentDAG_iterator_base() noexcept = default;
 			template <typename direction_type2 = direction_type>
 				requires (std::is_same_v<direction_type2, direction_type_ancestor>)
-			explicit DAG_iterator_base(_u_DAG_raw DAG_raw) : _DAG_raw(DAG_raw)
+			explicit PersistentDAG_iterator_base(_u_DAG_raw DAG_raw) : _DAG_raw(DAG_raw)
 			{
 				allocate_nodes__visited(DAG_raw);
 				auto& node_locations__tail_ancestor{ DAG_raw->_node_locations__tail_ancestor };
 				if (node_locations__tail_ancestor.empty()) {
-					_node_location = _DAG_raw->get_end_node<direction_type2>();
+					_node_location = _DAG_raw->template get_end_node<direction_type2>();
 				}
 				else {
 					_a_que_wrap_n que_wrap{ &node_locations__tail_ancestor };
@@ -816,12 +829,12 @@ namespace DAGNamespace {
 			};
 			template <typename direction_type2 = direction_type>
 				requires (std::is_same_v<direction_type2, direction_type_descendant>)
-			explicit DAG_iterator_base(_u_DAG_raw DAG_raw) : _DAG_raw(DAG_raw)
+			explicit PersistentDAG_iterator_base(_u_DAG_raw DAG_raw) : _DAG_raw(DAG_raw)
 			{
 				allocate_nodes__visited(DAG_raw);
 				auto& node_locations__head_descendant{ DAG_raw->_node_locations__head_descendant };
 				if (node_locations__head_descendant.empty()) {
-					_node_location = _DAG_raw->get_end_node<direction_type2>();
+					_node_location = _DAG_raw->template get_end_node<direction_type2>();
 				}
 				else {
 					_a_que_wrap_n que_wrap{ &node_locations__head_descendant };
@@ -830,7 +843,7 @@ namespace DAGNamespace {
 					_nodes__visited[_node_location.first][_node_location.second] = true;
 				}
 			};
-			DAG_iterator_base(_u_DAG_raw DAG_raw, _a_node_location node_location) noexcept
+			PersistentDAG_iterator_base(_u_DAG_raw DAG_raw, _a_node_location node_location) noexcept
 				:
 				_DAG_raw(DAG_raw),
 				_node_location{ node_location }
@@ -838,7 +851,7 @@ namespace DAGNamespace {
 				allocate_nodes__visited(DAG_raw);
 				_nodes__visited[node_location.first][node_location.second] = true;
 			};
-			DAG_iterator_base(_u_DAG_raw DAG_raw, _a_node_location node_location, bool) noexcept
+			PersistentDAG_iterator_base(_u_DAG_raw DAG_raw, _a_node_location node_location, bool) noexcept
 				:
 				_DAG_raw(DAG_raw),
 				_node_location{ node_location } {};
@@ -848,20 +861,21 @@ namespace DAGNamespace {
 			 */
 			template <typename direction_type2 = direction_type>
 			inline void update_node_pool() {
-				auto& node_locations__ancestor__var_raw = _DAG_raw->get_node_locations__ancestor__var_raw(_node_location);
-				if (node_locations__ancestor__var_raw) {
-					auto que_wrap = std::visit(
-						[](auto arg) { return _a_que_wrap_var_val(arg); },
-						node_locations__ancestor__var_raw.value());
-					_node_pool.push(que_wrap);
+				if constexpr (std::is_same_v<direction_type2, direction_type_ancestor>) {
+					auto& node_locations__ancestor__var_raw = _DAG_raw->get_node_locations__ancestor__var_raw(_node_location);
+					if (node_locations__ancestor__var_raw) {
+						auto que_wrap = std::visit(
+							[](auto arg) { return _a_que_wrap_var_val(arg); },
+							node_locations__ancestor__var_raw.value());
+						_node_pool.push(que_wrap);
+					}
 				}
-			};
-			template <>
-			inline void update_node_pool<direction_type_descendant>() {
-				const auto& node_locations__descendant = _DAG_raw->get_descendant_nodes__const(_node_location);
-				if (!node_locations__descendant.empty()) {
-					_a_que_wrap_n que_wrap{ &node_locations__descendant };
-					_node_pool.emplace(que_wrap);
+				else {
+					const auto& node_locations__descendant = _DAG_raw->get_descendant_nodes__const(_node_location);
+					if (!node_locations__descendant.empty()) {
+						_a_que_wrap_n que_wrap{ &node_locations__descendant };
+						_node_pool.emplace(que_wrap);
+					}
 				}
 			};
 
@@ -884,7 +898,7 @@ namespace DAGNamespace {
 			{
 				if (
 					_DAG_raw->get_state(_node_location) !=
-					EDAG_node_states::cycled && !_skip_remaining)
+					EDAG_node_states::directed_cycle && !_skip_remaining)
 				{
 					this->update_node_pool<direction_type>();
 				}
@@ -898,7 +912,7 @@ namespace DAGNamespace {
 						_node_pool.pop();
 					}
 					if (_node_pool.empty()) {
-						_node_location = _DAG_raw->get_end_node<direction_type>();
+						_node_location = _DAG_raw->template get_end_node<direction_type>();
 						return;
 					}
 
@@ -911,7 +925,7 @@ namespace DAGNamespace {
 						return;
 					}
 				}
-				_node_location = _DAG_raw->get_end_node<direction_type>();
+				_node_location = _DAG_raw->template get_end_node<direction_type>();
 			};
 		};
 
@@ -924,19 +938,19 @@ namespace DAGNamespace {
 		 *     traversal_type == traversal_type_BFS || traversal_type == traversal_type_DFS
 		 *     direction_type == direction_type_ancestor || direction_type == direction_type_descendant
 		 * 
-		 * see DAG_iterator_base for the details
+		 * see PersistentDAG_iterator_base for the details
 		 * 
 		 * Base template for:
 		 *     direction_type == direction_type_ancestor
 		 */
-		template <typename DAG_type, typename traversal_type, typename direction_type>
-		class DAG_const_iterator
-			: public DAG_iterator_base<DAG_type, traversal_type, direction_type>
+		template <typename PersistentDAG_type, typename traversal_type, typename direction_type>
+		class PersistentDAG_const_iterator
+			: public PersistentDAG_iterator_base<PersistentDAG_type, traversal_type, direction_type>
 		{
-			friend class PersistentDAG_2<T>;
+			friend class PersistentDAG<T>;
 
 			/// local alises
-			using _u_base = DAG_iterator_base<DAG_type, traversal_type, direction_type>;
+			using _u_base = PersistentDAG_iterator_base<PersistentDAG_type, traversal_type, direction_type>;
 
 		public:
 
@@ -944,9 +958,9 @@ namespace DAGNamespace {
 
 			// STL aliases
 			using iterator_category = std::bidirectional_iterator_tag;
-			using value_type = typename DAG_type::value_type;
-			using difference_type = typename DAG_type::difference_type;
-			using pointer = typename DAG_type::const_pointer;
+			using value_type = typename PersistentDAG_type::value_type;
+			using difference_type = typename PersistentDAG_type::difference_type;
+			using pointer = typename PersistentDAG_type::const_pointer;
 			using reference = const value_type&;
 
 			[[nodiscard]] inline reference operator*() const noexcept {
@@ -957,25 +971,25 @@ namespace DAGNamespace {
 				return &this->_DAG_raw->get_data(this->_node_location);
 			};
 
-			inline DAG_const_iterator& operator++() noexcept {
+			inline PersistentDAG_const_iterator& operator++() noexcept {
 				_u_base::set_next_node();
 				return *this;
 			};
 
-			[[nodiscard]] inline DAG_const_iterator operator++(int) noexcept {
-				DAG_const_iterator _temp{ *this };
+			[[nodiscard]] inline PersistentDAG_const_iterator operator++(int) noexcept {
+				PersistentDAG_const_iterator _temp{ *this };
 				++*this;
 				return _temp;
 			};
 
-			[[nodiscard]] inline DAG_const_iterator operator+(const difference_type offset) noexcept {
-				DAG_const_iterator _temp{ *this };
+			[[nodiscard]] inline PersistentDAG_const_iterator operator+(const difference_type offset) noexcept {
+				PersistentDAG_const_iterator _temp{ *this };
 				_temp += offset;
 				return _temp;
 			};
 
-			DAG_const_iterator& operator+=(const difference_type offset) noexcept {
-				auto node_location__end{ this->_DAG_raw->get_end_node<direction_type>() };
+			PersistentDAG_const_iterator& operator+=(const difference_type offset) noexcept {
+				auto node_location__end{ this->_DAG_raw->template get_end_node<direction_type>() };
 				for (std::ptrdiff_t i = 0; i < offset; ++i) {
 					if (this->_node_location == node_location__end) { return *this; }
 					operator++();
@@ -983,11 +997,11 @@ namespace DAGNamespace {
 				return *this;
 			};
 
-			[[nodiscard]] inline bool operator==(const DAG_const_iterator& rhs) const noexcept {
+			[[nodiscard]] inline bool operator==(const PersistentDAG_const_iterator& rhs) const noexcept {
 				return this->_DAG_raw == rhs._DAG_raw && this->_node_location == rhs._node_location;
 			};
 
-			[[nodiscard]] inline bool operator!=(const DAG_const_iterator& rhs) const noexcept {
+			[[nodiscard]] inline bool operator!=(const PersistentDAG_const_iterator& rhs) const noexcept {
 				return !(*this == rhs);
 			};
 		};
@@ -1003,28 +1017,28 @@ namespace DAGNamespace {
 		 * The STL style iterator class
 		 * Follows std::vector::iterator approach which bases std::vector::const_iterator
 		 * 
-		 * See the documentation of DAG_const_iterator for the details
+		 * See the documentation of PersistentDAG_const_iterator for the details
 		 * 
 		 * Notice that the non-const iterator is private
 		 * to keep the persistency of DAG.
 		 */
-		template <typename DAG_type, typename traversal_type, typename direction_type>
-		class DAG_iterator
-			: public DAG_const_iterator<DAG_type, traversal_type, direction_type>
+		template <typename PersistentDAG_type, typename traversal_type, typename direction_type>
+		class PersistentDAG_iterator
+			: public PersistentDAG_const_iterator<PersistentDAG_type, traversal_type, direction_type>
 		{
-			friend class PersistentDAG_2<T>;
+			friend class PersistentDAG<T>;
 
 		public:
 
 			// STL aliases
 			using iterator_category = std::bidirectional_iterator_tag;
-			using value_type = typename DAG_type::value_type;
-			using difference_type = typename DAG_type::difference_type;
-			using pointer = typename DAG_type::pointer;
+			using value_type = typename PersistentDAG_type::value_type;
+			using difference_type = typename PersistentDAG_type::difference_type;
+			using pointer = typename PersistentDAG_type::pointer;
 			using reference = value_type&;
 
 			/// local alises
-			using _u_base = DAG_const_iterator<DAG_type, traversal_type, direction_type>;
+			using _u_base = PersistentDAG_const_iterator<PersistentDAG_type, traversal_type, direction_type>;
 
 			// Constructors
 			using _u_base::_u_base;
@@ -1037,33 +1051,33 @@ namespace DAGNamespace {
 				return const_cast<pointer>(_u_base::operator->());
 			};
 
-			inline DAG_iterator& operator++() noexcept {
+			inline PersistentDAG_iterator& operator++() noexcept {
 				_u_base::operator++();
 				return *this;
 			};
 
-			[[nodiscard]] inline DAG_iterator operator++(int) noexcept {
-				DAG_iterator _temp{ *this };
+			[[nodiscard]] inline PersistentDAG_iterator operator++(int) noexcept {
+				PersistentDAG_iterator _temp{ *this };
 				_u_base::operator++();
 				return _temp;
 			};
 
-			[[nodiscard]] inline DAG_iterator operator+(const difference_type offset) const noexcept {
-				DAG_iterator _temp{ *this };
+			[[nodiscard]] inline PersistentDAG_iterator operator+(const difference_type offset) const noexcept {
+				PersistentDAG_iterator _temp{ *this };
 				_u_base::operator+=(offset);
 				return _temp;
 			};
 
-			inline DAG_iterator& operator+=(const difference_type offset) noexcept {
+			inline PersistentDAG_iterator& operator+=(const difference_type offset) noexcept {
 				_u_base::operator+=(offset);
 				return *this;
 			};
 
-			[[nodiscard]] inline bool operator==(const DAG_iterator& rhs) const noexcept {
+			[[nodiscard]] inline bool operator==(const PersistentDAG_iterator& rhs) const noexcept {
 				return this->_DAG_raw == rhs._DAG_raw && this->_node_location == rhs._node_location;
 			};
 
-			[[nodiscard]] inline bool operator!=(const DAG_iterator& rhs) const noexcept {
+			[[nodiscard]] inline bool operator!=(const PersistentDAG_iterator& rhs) const noexcept {
 				return !(*this == rhs);
 			};
 		};
@@ -1079,8 +1093,8 @@ namespace DAGNamespace {
 		using allocator_type = std::allocator<T>;
 		using pointer = value_type*;
 		using const_pointer = const value_type*;
-		using iterator = DAG_iterator<PersistentDAG_2<T>, traversal_type_DFS, direction_type_ancestor>;
-		using const_iterator = DAG_const_iterator<PersistentDAG_2<T>, traversal_type_DFS, direction_type_ancestor>;
+		using iterator = PersistentDAG_iterator<PersistentDAG<T>, traversal_type_DFS, direction_type_ancestor>;
+		using const_iterator = PersistentDAG_const_iterator<PersistentDAG<T>, traversal_type_DFS, direction_type_ancestor>;
 		using reference = T&;
 		using const_reference = const T&;
 		using size_type = std::size_t;
@@ -1094,9 +1108,9 @@ namespace DAGNamespace {
 
 		/// local alises
 		template <typename traversal_type, typename direction_type>
-		using iterator_type = DAG_iterator<PersistentDAG_2<T>, traversal_type, direction_type>;
+		using iterator_type = PersistentDAG_iterator<PersistentDAG<T>, traversal_type, direction_type>;
 		template <typename traversal_type, typename direction_type>
-		using const_iterator_type = DAG_const_iterator<PersistentDAG_2<T>, traversal_type, direction_type>;
+		using const_iterator_type = PersistentDAG_const_iterator<PersistentDAG<T>, traversal_type, direction_type>;
 		using iterator_BFS_ancestor = iterator_type<traversal_type_BFS, direction_type_ancestor>;
 		using iterator_BFS_descendant = iterator_type<traversal_type_BFS, direction_type_descendant>;
 		using iterator_DFS_ancestor = iterator_type<traversal_type_DFS, direction_type_ancestor>;
@@ -1227,27 +1241,19 @@ namespace DAGNamespace {
 			-> _a_node_locations__cond<ancestor_count_type::value>
 		{
 			_a_node_locations__cond<ancestor_count_type::value> node_locations;
-			for (unsigned char i = 0; i < nodes_var_raw.size(); i++) {
-				node_locations[i] = get_node_location(nodes_var_raw[i]);
+			if constexpr (std::is_same_v<ancestor_count_type, _a_integral<ANCESTOR_COUNT__EXCEED>>) {
+				for (unsigned char i = 0; i < nodes_var_raw.size(); i++) {
+					node_locations[i] = get_node_location(nodes_var_raw[i]);
+				}
+			}
+			else {
+				for (auto node_var_raw : nodes_var_raw) {
+					node_locations.push_back(get_node_location(node_var_raw));
+				}
 			}
 			return node_locations;
 		};
 
-		/*!
-		 * @brief gets location of the nodes
-		 */
-		template <>
-		[[nodiscard]] inline auto convert_nodes_into_node_locations<_a_integral<ANCESTOR_COUNT__EXCEED>>(
-			const _a_nodes_var_raw<ANCESTOR_COUNT__EXCEED>& nodes_var_raw) const
-			-> _a_node_locations__cond<ANCESTOR_COUNT__EXCEED>
-		{
-			_a_node_locations__cond<ANCESTOR_COUNT__EXCEED> node_locations{};
-			for (auto node_var_raw : nodes_var_raw) {
-				node_locations.push_back(get_node_location(node_var_raw));
-			}
-			return node_locations;
-		};
-		
 		/*!
 		 * @brief gets the state of the node
 		 */
@@ -1354,27 +1360,6 @@ namespace DAGNamespace {
 				node_locations__ancestor__var_raw.value());
 		};
 
-		/*!
-		 * @brief gets the end node of the iteration
-		 * Base template for
-		 *     direction_type == direction_type_ancestor
-		 */
-		template <typename direction_type>
-		[[nodiscard]] inline _a_node_location get_end_node() const noexcept
-		{
-			return _node_location__head;
-		};
-
-		/*!
-		 * @brief gets the end node of the iteration
-		 * Specialization for
-		 *     direction_type == direction_type_descendant
-		 */
-		template <>
-		[[nodiscard]] inline _a_node_location get_end_node<direction_type_descendant>() const noexcept {
-			return _node_location__tail;
-		};
-
 
 
 
@@ -1382,7 +1367,7 @@ namespace DAGNamespace {
 		 * @brief a helper function to copy all members accept for the datas into the new DAG
 		 * may throw
 		 */
-		void copy_members_accept_for_datas(PersistentDAG_2<T>& new_DAG, unsigned char container_index) const
+		void copy_members_accept_for_datas(PersistentDAG<T>& new_DAG, unsigned char container_index) const
 		{
 			new_DAG._nodes_0 = _nodes_0;
 			new_DAG._nodes_1 = _nodes_1;
@@ -1805,10 +1790,10 @@ namespace DAGNamespace {
 			_a_node_location node_location,
 			const T& data_new,
 			const _a_node_locations__cond<ancestor_count>& node_locations__ancestor__cond__new) const
-			-> PersistentDAG_2<T>
+			-> PersistentDAG<T>
 		{
 			// create a new DAG
-			PersistentDAG_2<T> new_DAG{};
+			PersistentDAG<T> new_DAG{};
 
 			// set the data
 			new_DAG._datas[node_location.first] = _datas[node_location.first].set_data(node_location, data_new);
@@ -1822,7 +1807,7 @@ namespace DAGNamespace {
 				throw std::logic_error("node type without ancestors.");
 			}
 			std::visit(
-				[&node_location](auto arg) {
+				[&new_DAG, &node_location](auto arg) {
 					for (unsigned char i = 0; i < arg->size(); ++i) {
 						auto& node_location__ancestor{ arg->operator[](i) };
 						auto& node_locations__descendant{ new_DAG.get_node_locations__descendant(node_location__ancestor) };
@@ -1862,7 +1847,7 @@ namespace DAGNamespace {
 
 			// inspect tail nodes
 			std::visit(
-				[&node_location](auto arg) {
+				[&new_DAG, &node_location](auto arg) {
 					for (unsigned char i = 0; i < arg->size(); ++i) {
 						auto& node_location__ancestor{ arg->operator[](i) };
 						auto& node_locations__descendant{ new_DAG.get_node_locations__descendant(node_location__ancestor) };
@@ -1879,7 +1864,7 @@ namespace DAGNamespace {
 			// execute the background thread
 			auto valid_state{ new_DAG._valid_state.load(std::memory_order_acquire) };
 			if (!valid_state) {
-				auto fut = std::async(&PersistentDAG_2::update_DAG_state, &new_DAG); // allow deferred execution
+				auto fut = std::async(&PersistentDAG::update_DAG_state, &new_DAG); // allow deferred execution
 			}
 			return new_DAG; // ensure NRVO due to single return
 		};
@@ -1895,7 +1880,7 @@ namespace DAGNamespace {
 		/*!
 		 * default constructor
 		 */
-		PersistentDAG_2() {
+		PersistentDAG() {
 			set_node_container_pointer_array();
 		};
 
@@ -1911,7 +1896,7 @@ namespace DAGNamespace {
 		 * @see see the main documentation of this header file
 		 * for a discussion on the performance of the copy constructor
 		 */
-		PersistentDAG_2(const PersistentDAG_2& rhs)
+		PersistentDAG(const PersistentDAG& rhs)
 			:
 			_datas(rhs._datas),
 			_nodes_0(rhs._nodes_0),
@@ -1944,7 +1929,7 @@ namespace DAGNamespace {
 		 * @brief copy assignment
 		 * @exceptsafe strong exception safety by copy-and-swap idiom
 		 */
-		PersistentDAG_2& operator=(PersistentDAG_2 rhs) {
+		PersistentDAG& operator=(PersistentDAG rhs) {
 			swap(*this, rhs);
 			set_node_container_pointer_array();
 			return *this;
@@ -1953,11 +1938,10 @@ namespace DAGNamespace {
 		/*!
 		 * @brief Friend swap function for the copy-and-swap idiom
 		 */
-		friend inline void swap(PersistentDAG_2& lhs, PersistentDAG_2& rhs) noexcept {
+		friend inline void swap(PersistentDAG& lhs, PersistentDAG& rhs) noexcept {
 			using std::swap;
 			swap(lhs._node_locations__cycled, rhs._node_locations__cycled);
 			swap(lhs._node_locations__deleted, rhs._node_locations__deleted);
-			swap(lhs._valid_state, rhs._valid_state);
 			swap(lhs._nodes_0, rhs._nodes_0);
 			swap(lhs._nodes_1, rhs._nodes_1);
 			swap(lhs._nodes_2, rhs._nodes_2);
@@ -1973,6 +1957,11 @@ namespace DAGNamespace {
 			swap(lhs._node_locations__head_descendant, rhs._node_locations__head_descendant);
 			swap(lhs._node_locations__tail_ancestor, rhs._node_locations__tail_ancestor);
 			swap(lhs._datas, rhs._datas);
+
+			auto valid_state_lhs{ lhs._valid_state.load(std::memory_order_acquire) };
+			auto valid_state_rhs{ rhs._valid_state.load(std::memory_order_acquire) };
+			lhs._valid_state.store(valid_state_rhs, std::memory_order_relaxed);
+			rhs._valid_state.store(valid_state_lhs, std::memory_order_relaxed);
 		};
 
 		/*!
@@ -1983,14 +1972,14 @@ namespace DAGNamespace {
 		 *     std::unordered_map does not have noexcept move constructor.
 		 *     but it has a noexcept move assignment
 		 */
-		PersistentDAG_2(PersistentDAG_2&& rhs) noexcept {
+		PersistentDAG(PersistentDAG&& rhs) noexcept {
 			move_helper(std::move(rhs));
 		};
 
 		/*!
 		 * @brief move assignment
 		 */
-		PersistentDAG_2& operator=(PersistentDAG_2&& rhs) noexcept {
+		PersistentDAG& operator=(PersistentDAG&& rhs) noexcept {
 			move_helper(std::move(rhs));
 			return *this;
 		};
@@ -1999,7 +1988,7 @@ namespace DAGNamespace {
 		 * @brief move helper
 		 * all members including std::unordered_map has noexcept move assignment
 		 */
-		void move_helper(PersistentDAG_2&& rhs) noexcept {
+		void move_helper(PersistentDAG&& rhs) noexcept {
 			_node_locations__cycled = std::move(rhs._node_locations__cycled);
 			_node_locations__deleted = std::move(rhs._node_locations__deleted);
 			_nodes_0 = std::move(rhs._nodes_0);
@@ -2026,9 +2015,9 @@ namespace DAGNamespace {
 			_valid_state.store(valid_state, std::memory_order_relaxed);
 		};
 
-		~PersistentDAG_2() = default;
+		~PersistentDAG() = default;
 
-		[[nodiscard]] inline bool operator==(const PersistentDAG_2& rhs) const noexcept {
+		[[nodiscard]] inline bool operator==(const PersistentDAG& rhs) const noexcept {
 			return _datas == rhs._datas;
 		};
 
@@ -2077,9 +2066,9 @@ namespace DAGNamespace {
 		 */
 		template <typename DAG_node_type, typename U = T>
             requires (CDAG_node__0<DAG_node_type, _a_integral<0>>)
-        [[nodiscard]] auto insert(U&& data) const -> PersistentDAG_2<T> {
+        [[nodiscard]] auto insert(U&& data) const -> PersistentDAG<T> {
 			// create a new DAG
-			PersistentDAG_2<T> new_DAG{};
+			PersistentDAG<T> new_DAG{};
 
 			// copy and push the data
 			new_DAG._datas[0] = _datas[0].push_back(std::forward<U>(data));
@@ -2108,7 +2097,7 @@ namespace DAGNamespace {
 			// execute the background thread
 			auto valid_state{ new_DAG._valid_state.load(std::memory_order_acquire) };
 			if (!valid_state) {
-				auto fut = std::async(&PersistentDAG_2::update_DAG_state, &new_DAG); // allow deferred execution
+				auto fut = std::async(&PersistentDAG::update_DAG_state, &new_DAG); // allow deferred execution
 			}
 			return new_DAG; // ensure NRVO due to single return
 		};
@@ -2124,12 +2113,12 @@ namespace DAGNamespace {
         [[nodiscard]] auto insert(
             const _a_node_locations__cond<ancestor_count>& node_locations__ancestor__cond,
             U&& data)
-			-> PersistentDAG_2<T>
+			-> PersistentDAG<T>
         {
 			static constexpr auto ancestor_count_v_{ fix_ancestor_count_v<ancestor_count> };
 
 			// create a new DAG
-			PersistentDAG_2<T> new_DAG{};
+			PersistentDAG<T> new_DAG{};
 
 			// copy and push the data
 			new_DAG._datas[ancestor_count_v_] = _datas[ancestor_count_v_].push_back(std::forward<U>(data));
@@ -2162,7 +2151,7 @@ namespace DAGNamespace {
 			// execute the background thread
 			auto valid_state{ new_DAG._valid_state.load(std::memory_order_acquire) };
 			if (!valid_state) {
-				auto fut = std::async(&PersistentDAG_2::update_DAG_state, &new_DAG); // allow deferred execution
+				auto fut = std::async(&PersistentDAG::update_DAG_state, &new_DAG); // allow deferred execution
 			}
 			return new_DAG; // ensure NRVO due to single return
         };
@@ -2178,7 +2167,7 @@ namespace DAGNamespace {
 		[[nodiscard]] auto insert(
 			const _a_nodes_var_raw<ancestor_count>& nodes__ancestor__var_raw,
 			U&& data)
-			-> PersistentDAG_2<T>
+			-> PersistentDAG<T>
 		{
 			auto node_locations__ancestor__cond{
 				convert_nodes_into_node_locations<_a_integral<ancestor_count>>(
@@ -2201,10 +2190,10 @@ namespace DAGNamespace {
 		 */
 		template <typename DAG_node_type, typename... Ts>
             requires (CDAG_node__0<DAG_node_type, _a_integral<0>>)
-        [[nodiscard]] auto emplace(Ts&&... args) -> PersistentDAG_2<T>
+        [[nodiscard]] auto emplace(Ts&&... args) -> PersistentDAG<T>
 		{
 			// create a new DAG
-			PersistentDAG_2<T> new_DAG{};
+			PersistentDAG<T> new_DAG{};
 
 			// copy and push the data
 			new_DAG._datas[0] = _datas[0].emplace_back(std::forward<Ts>(args)...);
@@ -2233,7 +2222,7 @@ namespace DAGNamespace {
 			// execute the background thread
 			auto valid_state{ new_DAG._valid_state.load(std::memory_order_acquire) };
 			if (!valid_state) {
-				auto fut = std::async(&PersistentDAG_2::update_DAG_state, &new_DAG); // allow deferred execution
+				auto fut = std::async(&PersistentDAG::update_DAG_state, &new_DAG); // allow deferred execution
 			}
 			return new_DAG; // ensure NRVO due to single return
 		};
@@ -2249,12 +2238,12 @@ namespace DAGNamespace {
 		[[nodiscard]] auto emplace(
 			const _a_node_locations__cond<ancestor_count>& node_locations__ancestor__cond,
 			Ts&&... args)
-			-> PersistentDAG_2<T>
+			-> PersistentDAG<T>
 		{
 			static constexpr auto ancestor_count_v_{ fix_ancestor_count_v<ancestor_count> };
 
 			// create a new DAG
-			PersistentDAG_2<T> new_DAG{};
+			PersistentDAG<T> new_DAG{};
 
 			// copy and push the data
 			new_DAG._datas[ancestor_count_v_] = _datas[ancestor_count_v_].emplace_back(std::forward<Ts>(args)...);
@@ -2287,7 +2276,7 @@ namespace DAGNamespace {
 			// execute the background thread
 			auto valid_state{ new_DAG._valid_state.load(std::memory_order_acquire) };
 			if (!valid_state) {
-				auto fut = std::async(&PersistentDAG_2::update_DAG_state, &new_DAG); // allow deferred execution
+				auto fut = std::async(&PersistentDAG::update_DAG_state, &new_DAG); // allow deferred execution
 			}
 			return new_DAG; // ensure NRVO due to single return
 		};
@@ -2303,7 +2292,7 @@ namespace DAGNamespace {
 		[[nodiscard]] auto emplace(
 			const _a_nodes_var_raw<ancestor_count>& nodes__ancestor__var_raw,
 			Ts&&... args)
-			-> PersistentDAG_2<T>
+			-> PersistentDAG<T>
 		{
 			auto node_locations__ancestor__cond{
 				convert_nodes_into_node_locations<_a_integral<ancestor_count>>(
@@ -2330,7 +2319,7 @@ namespace DAGNamespace {
 		 */
 		template <unsigned char ancestor_count>
 		[[nodiscard]] auto erase(const _a_node_location& node_location__erase) const
-			-> std::optional<PersistentDAG_2<T>>
+			-> std::optional<PersistentDAG<T>>
 		{
 			if (const auto& node_locations__descendant{ get_descendant_nodes__const(node_location__erase) };
 				!node_locations__descendant.empty())
@@ -2339,7 +2328,7 @@ namespace DAGNamespace {
 			}
 
 			// copy the DAG
-			PersistentDAG_2<T> new_DAG{};
+			PersistentDAG<T> new_DAG{};
 			copy_members_accept_for_datas(new_DAG, node_location__erase.first);
 
 			// erase
@@ -2350,7 +2339,7 @@ namespace DAGNamespace {
 			// execute the background thread
 			auto valid_state{ new_DAG._valid_state.load(std::memory_order_acquire) };
 			if (!valid_state) {
-				auto fut = std::async(&PersistentDAG_2::update_DAG_state, &new_DAG); // allow deferred execution
+				auto fut = std::async(&PersistentDAG::update_DAG_state, &new_DAG); // allow deferred execution
 			}
 			return new_DAG; // ensure NRVO due to single return
 		};
@@ -2367,7 +2356,7 @@ namespace DAGNamespace {
 		 */
 		template <unsigned char ancestor_count>
 		[[nodiscard]] inline auto erase(_a_node_var_raw node_var_raw__erase) const
-			-> std::optional<PersistentDAG_2<T>>
+			-> std::optional<PersistentDAG<T>>
 		{
 			auto node_location__erase{ get_node_location(node_var_raw__erase) };
 			return erase<ancestor_count>(node_location__erase);
@@ -2385,10 +2374,10 @@ namespace DAGNamespace {
 		 */
 		[[nodiscard]] auto erase_with_descendants(
 			const _a_node_location& node_location__erase) const
-			-> PersistentDAG_2<T>
+			-> PersistentDAG<T>
 		{
 			// create a new DAG
-			PersistentDAG_2<T> new_DAG{ *this };
+			PersistentDAG<T> new_DAG{ *this };
 
 			// set the state of the node as deleted
 			new_DAG._DAG_node_states[node_location__erase.first][node_location__erase.second] =
@@ -2400,7 +2389,7 @@ namespace DAGNamespace {
 			// execute the background thread
 			auto valid_state{ new_DAG._valid_state.load(std::memory_order_acquire) };
 			if (!valid_state) {
-				auto fut = std::async(&PersistentDAG_2::update_DAG_state, &new_DAG); // allow deferred execution
+				auto fut = std::async(&PersistentDAG::update_DAG_state, &new_DAG); // allow deferred execution
 			}
 			return new_DAG;
 		};
@@ -2417,7 +2406,7 @@ namespace DAGNamespace {
 		 */
 		[[nodiscard]] auto erase_with_descendants(
 			_a_node_var_raw node_var_raw__erase) const
-			-> PersistentDAG_2<T>
+			-> PersistentDAG<T>
 		{
 			auto node_location__erase{ get_node_location(node_var_raw__erase) };
 			return erase_with_descendants(node_location__erase);
@@ -2448,7 +2437,7 @@ namespace DAGNamespace {
 			const _a_node_location& node_location,
 			const T& data_new,
 			const _a_node_locations__cond<ancestor_count>& node_locations__ancestor__new) const
-			-> std::optional<PersistentDAG_2<T>>
+			-> std::optional<PersistentDAG<T>>
 		{
 			// inspect directed cycle
 			for (auto node_location__ancestor : node_locations__ancestor__new) {
@@ -2456,7 +2445,7 @@ namespace DAGNamespace {
 					return {};
 				}
 			}
-			return std::make_optional<PersistentDAG_2<T>>( // RVO is guaranteed by the standard
+			return std::make_optional<PersistentDAG<T>>( // RVO is guaranteed by the standard
 				replace_ancestors_helper<ancestor_count>(
 					node_location,
 					data_new,
@@ -2480,7 +2469,7 @@ namespace DAGNamespace {
 			_a_node_var_raw node_var_raw,
 			const T& data_new,
 			const _a_nodes_var_raw<ancestor_count>& nodes_var_raw__ancestor__new) const
-			-> PersistentDAG_2<T>
+			-> PersistentDAG<T>
 		{
 			auto node_location{ get_node_location(node_var_raw) };
 			auto node_locations__ancestor__new{
@@ -2505,7 +2494,7 @@ namespace DAGNamespace {
 			const _a_node_location& node_location,
 			const T& data_new,
 			const _a_node_locations__cond<ancestor_count>& node_locations__ancestor__new) const
-			-> PersistentDAG_2<T>
+			-> PersistentDAG<T>
 		{
 			std::vector<_a_node_location> node_locations__cycled;
 			for (auto node_location__ancestor : node_locations__ancestor__new) {
