@@ -1118,26 +1118,6 @@ namespace PersistentDAGNamespace_1 {
 		 *     but it has a noexcept move assignment
 		 */
 		PersistentDAG(PersistentDAG&& rhs) noexcept {
-			move_helper(std::move(rhs));
-		};
-
-		/*!
-		 * @brief move assignment
-		 * 
-		 * CAUTION:
-		 * not default:
-		 *     node state data requires a lock
-		 */
-		PersistentDAG& operator=(PersistentDAG&& rhs) noexcept {
-			move_helper(std::move(rhs));
-			return *this;
-		};
-
-		/*!
-		 * @brief move helper
-		 * all members including std::unordered_map has noexcept move assignment
-		 */
-		void move_helper(PersistentDAG&& rhs) noexcept {
 			_indexs__cycled = std::move(rhs._indexs__cycled);
 			_datas = std::move(rhs._datas);
 			_DAG_node_types = std::move(rhs._DAG_node_types);

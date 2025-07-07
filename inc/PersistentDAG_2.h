@@ -1973,22 +1973,6 @@ namespace PersistentDAGNamespace_2 {
 		 *     but it has a noexcept move assignment
 		 */
 		PersistentDAG(PersistentDAG&& rhs) noexcept {
-			move_helper(std::move(rhs));
-		};
-
-		/*!
-		 * @brief move assignment
-		 */
-		PersistentDAG& operator=(PersistentDAG&& rhs) noexcept {
-			move_helper(std::move(rhs));
-			return *this;
-		};
-
-		/*!
-		 * @brief move helper
-		 * all members including std::unordered_map has noexcept move assignment
-		 */
-		void move_helper(PersistentDAG&& rhs) noexcept {
 			_node_locations__cycled = std::move(rhs._node_locations__cycled);
 			_node_locations__deleted = std::move(rhs._node_locations__deleted);
 			_nodes_0 = std::move(rhs._nodes_0);

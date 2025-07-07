@@ -295,6 +295,7 @@ benchmark/CMakeFiles/benchmark.out.dir/benchmark.cpp.o: ../benchmark/benchmark.c
   /usr/include/c++/11/ctime \
   /usr/include/c++/11/bits/parse_numbers.h \
   /usr/include/c++/11/bits/unique_lock.h \
+  /usr/include/c++/11/optional \
   /usr/include/c++/11/future \
   /usr/include/c++/11/condition_variable \
   /usr/include/c++/11/stop_token \
@@ -389,6 +390,8 @@ benchmark/CMakeFiles/benchmark.out.dir/benchmark.cpp.o: ../benchmark/benchmark.c
 /usr/include/c++/11/bits/semaphore_base.h:
 
 /usr/include/c++/11/semaphore:
+
+/usr/include/c++/11/optional:
 
 /usr/include/c++/11/bits/parse_numbers.h:
 

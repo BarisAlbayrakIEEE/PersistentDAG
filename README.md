@@ -1,13 +1,21 @@
+**Contents**
+1.   [Introduction](#sec1)
+2.   [Data Structures and Memory Management](#sec2)
+3.   [Iterators](#sec3)
+4.   [Concurrency](#sec4)
+5.   [Requirements](#sec5)
+6.   [Assumptions and Limitations](#sec6)
+
 # Persistent Directed Acyclic Graph (DAG)
 
-## 1. Caution
+**Caution**\
 The following two header files are kind of the two versions of the persistent DAG interface:
 1. [1st version of the Persistent DAG, PersistentDAG_1.h](PersistentDAG_1.h)
 2. [2nd version of the Persistent DAG, PersistentDAG_2.h](PersistentDAG_2.h)
 
 See the documentation of [PersistentDAG_2.h](PersistentDAG_2.h) for the differences between the two.
 
-## 2. Introduction
+## 1. Introduction <a id='sec1'></a>
 **Definition**\
 Graph is a kind of dynamic linked data structure.
 It allows both **many-to-one** and **one-to-many** relationships unlike a tree which only allows one-to-many.
@@ -114,7 +122,7 @@ This interface relies on this approach where a main thread performs the operatio
 while a background thread keeps inspecting and updating the states of the nodes.
 See the [Concurrency](#5-Concurrency) section for the details.
 
-## 3. Data Structures and Memory Management
+## 2. Data Structures and Memory Management <a id='sec2'></a>
 **All the discussions in this section corresponds to some aspects of DOD approach (e.g. structs of arrays).**
 
 The DAG stores the contained data in a `VectorTree` which is a fully persistent data structure and relies on the data sharing.
@@ -176,7 +184,7 @@ As a result, T is thought to be independent of the relations defined in the DAG.
 Hence, the structural sharing can be utilized for the contained type T which minimizes the amount of copied data.
 The structural sharing is crucial when T stores large data.
 
-## 4. Iterators
+## 3. Iterators <a id='sec3'></a>
 - STL style bidirectional iterator is defined as an inner class.
 - const iterator is public and non-const iterator is private for internal usage.
 - Bidirectionality is provided by the direction type template parameter (ancestor or descendant).
@@ -204,7 +212,7 @@ Hence, backup solution is not reasonable for `erase_deleted_nodes()`.
 The 2nd interface ([PersistentDAG_2.h](PersistentDAG_2.h)) embeds `erase_deleted_nodes()` into erase function
 without increasing the runtime complexity of the erase function significantly.
 
-## 5. Concurrency
+## 4. Concurrency <a id='sec4'></a>
 As stated above in the [Introduction](#2-Introduction) section, multithreading is required to maintain the state of the nodes by a background thread.
 As specified earlier, if the relations of a node is modified by a user action,
 the node state data must be inspected and modified (if needed)
@@ -406,7 +414,7 @@ In summary, the DAG is implemented using the 3rd approach by injecting the lock-
 
 *Note: The state of the DAG is an `std::atomic<bool>` which secures the DAG state without a higher level locking mechanism.*
 
-## 6. Requirements
+## 5. Requirements <a id='sec5'></a>
 1. The contained type T must satisfy the following interface:
 ```
 std::copy_constructible<T>
@@ -421,7 +429,7 @@ Hence, if T objects have pointers to other T objects, the structural sharing wil
 Therefore, reconsider using this interface in such a case.
 The issue is explained in [Data Structures and Memory Management](#3-Data-Structures-and-Memory-Management) section.
 
-## 7. Assumptions and Limitations
+## 6. Assumptions and Limitations <a id='sec6'></a>
 The only aim of the this DAG interface is to store the data (T) in a directed graph data structure while keeping the state of the data uptodate.
 Hence, many fundamental operations of a DAG are excluded.
 Two important parameters are missing in this DAG interface:
